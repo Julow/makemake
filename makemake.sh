@@ -1,3 +1,4 @@
+#!/bin/bash
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
@@ -6,11 +7,25 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/04/07 22:29:29 by jaguillo          #+#    #+#              #
-#    Updated: 2015/04/12 00:27:17 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/04/12 00:41:47 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
+#
+# makemake.sh
+#
+# Makefile generator
+# For all language that compile into .o
+#
+# Usage:
+#  ./makemake [re]
+#
+# re: If a Makefile exists, use the same config otherwise, use default values.
+#
+
 MAKEFILE="Makefile"
+MAKEMAKE="$0"
+MAKEMODE="$1"
 
 function prompt()
 {
@@ -24,6 +39,10 @@ function prompt()
 		fi
 	else
 		DEF="$2"
+	fi
+	if [[ "$MAKEMODE" == "re" ]]; then
+		echo "$DEF"
+		return
 	fi
 	if [[ ! -z "$DEF" ]]; then
 		MSG="$1 ($DEF)"
@@ -157,7 +176,10 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re$PHONY"
+make:
+	@bash '$MAKEMAKE' re
+
+.PHONY: all clean fclean re make$PHONY"
 };
 
 create_makefile > $MAKEFILE && printf "\033[0;32mMakefile ready." || printf "\033[0;31mCannot create Makefile"
