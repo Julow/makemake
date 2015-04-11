@@ -6,53 +6,54 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/04/07 22:29:29 by jaguillo          #+#    #+#              #
-#    Updated: 2015/04/11 19:36:25 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/04/12 00:27:17 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-#
-# Config
-#
+MAKEFILE="Makefile"
 
 function prompt()
 {
-	if [[ ! -z "$2" ]]; then
-		MSG="$1 ($2)"
+	DEF=""
+	if [[ -f "$MAKEFILE" ]]; then
+		if [[ ! -z "$3" ]]; then
+			DEF="`cat $MAKEFILE | grep "$3 := " | cut -d ' ' -f 3-`"
+		fi
+		if [[ -z "$DEF" ]]; then
+			DEF="$2"
+		fi
+	else
+		DEF="$2"
+	fi
+	if [[ ! -z "$DEF" ]]; then
+		MSG="$1 ($DEF)"
 	else
 		MSG="$1"
 	fi
 	read -p "> $MSG: " R
-	if [[ ! -z "$2" ]]; then
-		if [[ -z "$R" ]]; then
-			R="$2"
-		fi
+	if [[ -z "$R" ]]; then
+		R="$DEF"
 	fi
 	echo "$R"
 };
 
-echo "---> Executable name <---"
-NAME=`prompt "NAME"`
+NAME=`prompt "NAME" "$DEF_NAME" "NAME"`
 
-echo "---> Directories <---"
-C_DIR=`prompt "Sources directory" "."`
-H_DIRS=`prompt "Headers directory" "."`
-O_DIR=`prompt "Objects directory" "o"`
+C_DIR=`prompt "Sources directory" "." "C_DIR"`
+H_DIRS=`prompt "Headers directory" "." "H_DIRS"`
+O_DIR=`prompt "Objects directory" "o" "O_DIR"`
 
-echo "---> Makefiles to call <---"
-LIBS=`prompt "Libraries" ""`
+LIBS=`prompt "Libraries" "" "LIBS"`
 
-echo "---> Compilation <---"
-CC=`prompt "Compiler" "clang++"`
-FLAGS=`prompt "Flags" "-Wall -Wextra -Werror -O2"`
+CC=`prompt "Compiler" "clang++" "CC"`
+FLAGS=`prompt "Flags" "-Wall -Wextra -Werror -O2" "FLAGS"`
 
-echo "---> Links (-L and -l) <---"
 DEF=""
 for L in $LIBS; do
 	DEF="-L$L $DEF"
 done
-LINKS=`prompt "Libraries links" "$DEF"`
+LINKS=`prompt "Libraries links" "$DEF" "LINKS"`
 
-echo "---> Headers (-I) <---"
 DEF=""
 for H in $H_DIRS; do
 	DEF="-I$H $DEF"
@@ -60,16 +61,7 @@ done
 for L in $LIBS; do
 	DEF="-I$L $DEF"
 done
-HEADS=`prompt "Headers links" "$DEF"`
-
-echo "---> Advenced config <---"
-if [[ "`prompt "More config" "No"`" != "No" ]]; then
-	echo "Sorry, No more config"
-fi
-
-#
-# Generation
-#
+HEADS=`prompt "Headers links" "$DEF" "HEADS"`
 
 function includes()
 {
@@ -84,9 +76,8 @@ function includes()
 	done
 };
 
-C_FILES=`find "$C_DIR" -type f -print | grep -E '\.c(pp)?$'`
+C_FILES=`find "$C_DIR" -type f -print | grep -E '\.[sSc](pp)?$'`
 O_FILES=""
-O_LIBS=""
 O_DIRS=""
 
 MAX_LEN="${#NAME}"
@@ -99,22 +90,32 @@ function create_c_rule()
 		MAX_LEN="${#1}"
 	fi
 	O_FILE=`echo "$1.o" | sed -E 's#^'"$C_DIR"'#'"$O_DIR"'#'`
-	O_FILES="$O_FILES $O_FILE"
+	if [[ -z "$O_FILES" ]]; then
+		O_FILES="$O_FILE"
+	else
+		O_FILES="$O_FILES \\
+		$O_FILE"
+	fi
 	printf "$O_FILE: $1"
-	#echo " $O_FILE" | sed -E 's#[^/]+$##' | tr -d '\n'
 	O_DIRS="$O_DIRS `echo "$O_FILE" | sed -E 's#[^/]+$##' | tr -d '\n'`"
 	includes "$1"
 	echo
-	echo "	@printf \$(MSG_0) \$<"
-	echo "	@$CC $FLAGS $HEADS -c -o \$@ \$< || printf \$(MSG_1) \$<"
-	echo
+	echo "	@\$(COMPILE)"
 };
 
 function create_makefile()
 {
 	echo "# LOL
 
-NAME = $NAME
+NAME := $NAME
+C_DIR := $C_DIR
+H_DIRS := $H_DIRS
+O_DIR := $O_DIR
+LIBS := $LIBS
+CC := $CC
+FLAGS := $FLAGS
+LINKS := $LINKS
+HEADS := $HEADS
 
 all: \$(NAME)
 "
@@ -125,18 +126,21 @@ all: \$(NAME)
 
 	for M in $LIBS; do
 		PHONY="$PHONY $M"
-		O_LIBS="$O_LIBS $M"
 		echo "$M:"
 		echo "	@make -C $M"
 		echo
 	done
 
-	echo "MSG_0 = '"'\\'"033[0;32m%-${MAX_LEN}.${MAX_LEN}s"'\\'"033[0;0m"'\\'"r'
-MSG_1 = '"'\\'"033[0;31m%-${MAX_LEN}.${MAX_LEN}s"'\\'"033[0;0m"'\\'"n'
+	echo "
+MSG_0 := printf '\\033[0;32m%-${MAX_LEN}.${MAX_LEN}s\\033[0;0m\\r'
+MSG_1 := printf '\\033[0;31m%-${MAX_LEN}.${MAX_LEN}s\\033[0;0m\\n'
 
-\$(NAME):$O_DIRS$O_LIBS$O_FILES
-	@printf \$(MSG_0) \$@
-	@$CC $FLAGS -o \$@ $O_FILES $LINKS && echo || printf \$(MSG_1) \$@
+COMPILE = \$(MSG_0) \$< ; \$(CC) \$(FLAGS) \$(HEADS) -c -o \$@ \$< || \$(MSG_1) \$<
+
+O_FILES := $O_FILES
+
+\$(NAME):`echo "$O_DIRS" | tr ' ' '\n' | sort -u | tr '\n' ' '`\$(LIBS) \$(O_FILES)
+	@\$(MSG_0) \$@ ; \$(CC) \$(FLAGS) -o \$@ \$(O_FILES) \$(LINKS) && echo || \$(MSG_1) \$@
 
 $O_DIR/:
 	@mkdir -p \$@ 2> /dev/null || true
@@ -145,7 +149,7 @@ $O_DIR/%:
 	@mkdir -p \$@ 2> /dev/null || true
 
 clean:
-	@rm -f$O_FILES 2> /dev/null || true
+	@rm -f \$(O_FILES) 2> /dev/null || true
 	@rmdir -p $O_DIR 2> /dev/null || true
 
 fclean: clean
@@ -153,15 +157,9 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re make$PHONY"
+.PHONY: all clean fclean re$PHONY"
 };
 
-#
-# Main
-#
+create_makefile > $MAKEFILE && printf "\033[0;32mMakefile ready." || printf "\033[0;31mCannot create Makefile"
 
-echo "---> Generating Makefile <---"
-
-create_makefile > Makefile && printf "\033[0;32m" || printf "\033[0;31m"
-
-printf "Makefile ready.\033[0;0m\n"
+printf "\033[0;0m\n"
