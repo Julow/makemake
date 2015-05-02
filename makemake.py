@@ -2,28 +2,22 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    test_makemake.py                                   :+:      :+:    :+:    #
+#    makemake.py                                        :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/03 00:02:46 by juloo            ###   ########.fr        #
+#    Updated: 2015/05/03 00:15:40 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 #
 # makemake.py
 #
-# <<Test>>
+# Makefile generator
 #
-# Minimal project manager
-#
-# -
-#
-
-#
-# TODO:
-# Lib manager (libft, libftprintf, libftreg, libget_next_line, etc...)
+# Usage:
+#  just run like: './makemake.py'
 #
 
 from re import compile

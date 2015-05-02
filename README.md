@@ -4,17 +4,17 @@ Makefile generator
 
 ### Usage
 
-`./makemake`;
+`./makemake.py`;
 
-Then the script will prompt you for some configs<br />
+Then Makemake will prompt you for some configs<br />
 _(NAME, directories, flags, etc...)_
 
-Keep the script and run `make make` to _refresh_ the `Makefile`.
+Keep Makemake and run `make make` to _refresh_ the `Makefile`.
 
 ### Install
 
 Download:<br />
-`curl -O https://raw.githubusercontent.com/Julow/makemake/master/makemake.sh`
+`curl -O https://raw.githubusercontent.com/Julow/makemake/master/makemake.py`
 
 And run:<br />
-`bash makemake.sh`
+`python makemake.py`
