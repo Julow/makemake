@@ -2,12 +2,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    makemake.py                                        :+:      :+:    :+:    #
+#    test_makemake.py                                   :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/02 17:48:39 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/05/03 00:02:46 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,10 +30,12 @@ from re import compile
 from subprocess import Popen, PIPE
 from os.path import isfile
 from collections import OrderedDict
-from sys import argv
+from sys import argv, stdout
+from fcntl import ioctl
+from termios import TIOCSTI
 
 variables = OrderedDict([
-	("NAME", ("", "$(NAME)")),
+	("NAME", ("", "Executable name")),
 
 	("C_DIR", (".", "Sources directory")),
 	("H_DIRS", (".", "Includes directories")),
@@ -133,10 +135,12 @@ class Makefile():
 		if name in variables:
 			if variables[name][1] == None:
 				data = variables[name][0]
-			elif variables[name][0] == "":
-				data = raw_input("%s: " % variables[name][1])
 			else:
-				data = raw_input("%s (%s):" % (variables[name][1], variables[name][0]))
+				stdout.write("\033[33m%s:\033[39m " % variables[name][1])
+				stdout.flush()
+				for c in variables[name][0]:
+					ioctl(0, TIOCSTI, c)
+				data = raw_input()
 			data.strip()
 			if len(data) <= 0:
 				data = variables[name][0]
@@ -225,7 +229,12 @@ class Makefile():
 					self.oFiles.append(o)
 
 	def _createAllRule(self, output):
-		threads = int(self.getVar("THREADS", output))
+		threadsVar = self.getVar("THREADS", output)
+		try:
+			threads = int(threadsVar)
+		except:
+			threads = 1
+			self.setVar("THREADS", 1)
 		if threads <= 1:
 			threads = 1
 			output.write("\nall: $(NAME)\n")
@@ -252,8 +261,6 @@ class Makefile():
 		output.write(bodyTemplate % argv[0])
 		output.close()
 
-def main():
-	makefile = Makefile("Makefile")
-	makefile.build("Makefile")
-
-main()
+makefile = Makefile("Makefile")
+makefile.build("Makefile")
+print("\033[32mMakefile ready\033[39m")
