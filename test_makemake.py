@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/02 01:28:34 by juloo            ###   ########.fr        #
+#    Updated: 2015/05/02 02:21:29 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,6 +31,7 @@
 
 from re import compile
 from subprocess import Popen, PIPE
+from os.path import isfile
 
 variables = {
 	"NAME": ("", "$(NAME)"),
@@ -41,24 +42,26 @@ variables = {
 
 	"LIBS": ("", "Makefiles to call"),
 
+	"CC_C": ("clang", ".c compilator"),
+	"CC_CPP": ("clang++", ".cpp compilator"),
+	"CC_ASM": ("nasm", ".s compilator"),
+
 	"C_FLAGS": ("-Wall -Wextra -Werror -O2", "Clang flags"),
 	"CPP_FLAGS": ("-Wall -Wextra -Werror -O2", "Clang++ flags"),
-	"NASM_FLAGS": ("-Wall -Werror", "Nasm flags"),
+	"ASM_FLAGS": ("-Wall -Werror", "Nasm flags"),
 
-	"C_LINKS": ("", "Clang linking flags"),
-	"CPP_LINKS": ("", "Clang++ linking flags"),
-	"NASM_LINKS": ("", "Nasm linking flags"),
+	"LD_FLAGS": ("", "Linking flags"),
 
 	"C_HEADS": ("", "Clang include flags"),
 	"CPP_HEADS": ("", "Clang++ include flags"),
-	"NASM_HEADS": ("", "Nasm include flags")
+	"ASM_HEADS": ("", "Nasm include flags")
 };
 
 extensions = [
-	(".cpp", "clang++"),
-	(".c", "clang"),
-	(".S", "nasm"),
-	(".s", "nasm")
+	(".cpp", "CPP"),
+	(".c", "C"),
+	(".S", "ASM"),
+	(".s", "ASM")
 ]
 
 regVar = compile('^\s*(\w+)\s*[:]?=\s*(.*)$')
@@ -112,7 +115,7 @@ class Makefile():
 				self.setVar(m.group(1), m.group(2))
 		f.close()
 
-	def _dependencies(self, name):
+	def _dependencies(self, name, hDirs):
 		try:
 			f = open(name, "r")
 		except:
@@ -121,26 +124,33 @@ class Makefile():
 		for line in f:
 			m = regInclude.match(line)
 			if m != None:
-				dep += " %s" % m.group(1)
+				for d in hDirs:
+					h = "%s/%s" % (d, m.group(1))
+					if isfile(h):
+						dep += " %s" % h
 		f.close()
 		return dep
 
 	def _createFileRules(self, output):
 		cmd = Popen(["find", self.getVar("C_DIR", output), "-type", "f", "-print"], stdout=PIPE)
-		for f in cmd.communicate():
-			if f == None:
-				continue
+		for f in cmd.stdout:
+			f = f[:-1]
 			for e in extensions:
 				if f.endswith(e[0]):
-					f.replace(e[0], ".o")
+					o = f.replace(e[0], ".o")
+					varFlags = "%s_FLAGS" % e[1]
+					varHeads = "%s_HEADS" % e[1]
+					self.getVar(varFlags, output)
+					self.getVar(varHeads, output)
 					output.write("""
-%s:%s
-	$(MSG_0) $< ; %s $(FLAGS) $(HEADS) -c -o $@ $< || $(MSG_1) $<
-""" % (f, self._dependencies(f), e[1]))
-					if len(f) > self.maxLen:
-						self.maxLen = len(f)
-					self.oFiles.append("%s\n" % f)
-					oDir = "%s/%s" % (self.getVar("O_DIR", output), f)
+%s: %s%s
+	@$(MSG_0) $< ; %s $(%s) $(%s) -c -o $@ $< || $(MSG_1) $< && false
+""" % (o, f, self._dependencies(f, self.getVar("H_DIRS", output).split()),
+	self.getVar("CC_%s" % e[1], output), varFlags, varHeads))
+					if len(o) > self.maxLen:
+						self.maxLen = len(o)
+					self.oFiles.append(o)
+					oDir = "%s/%s" % (self.getVar("O_DIR", output), o)
 					if not oDir in self.oDirs:
 						self.oDirs.append(oDir)
 					break
@@ -148,10 +158,10 @@ class Makefile():
 	def _createLibsRules(self, output):
 		for lib in self.getVar("LIBS", output).split():
 			self.phony.append(lib)
-			f.write("""
-%(0)s:
-	@make -C %(0)s
-""" % (lib))
+			output.write("""
+%s:
+	@make -C %s
+""" % (lib, lib))
 
 	def build(self, name):
 		try:
@@ -172,9 +182,7 @@ all: $(NAME)
 """)
 		self._createFileRules(output)
 		self._createLibsRules(output)
-		self.getVar("FLAGS", output)
-		self.getVar("HEADS", output)
-		self.getVar("LINKS", output)
+		self.getVar("LD_FLAGS", output)
 		output.write("""
 MSG_0 := printf '\\033[0;32m%%-%(maxlen)s.%(maxlen)ss\\033[0;0m\\r'
 MSG_1 := printf '\\033[0;31m%%-%(maxlen)s.%(maxlen)ss\\033[0;0m\\n'
@@ -182,7 +190,7 @@ MSG_1 := printf '\\033[0;31m%%-%(maxlen)s.%(maxlen)ss\\033[0;0m\\n'
 O_FILES := %(ofiles)s
 
 $(NAME): %(odirs)s $(O_FILES)
-	@$(MSG_0) $@ ; $(CC) $(FLAGS) -o $@ $(O_FILES) $(LINKS) && echo || $(MSG_1) $@
+	@$(MSG_0) $@ ; ld -o $@ $(O_FILES) $(LD_FLAGS) && echo || $(MSG_1) $@
 
 $(O_DIR)/:
 	@mkdir -p $@ 2> /dev/null || true
@@ -202,7 +210,7 @@ re: fclean all
 .PHONY: %(phony)s
 """ % {
 	"maxlen": self.maxLen,
-	"ofiles": "\n".join(self.oFiles),
+	"ofiles": " \\\n\t".join(self.oFiles),
 	"odirs": " ".join(self.oDirs),
 	"phony": " ".join(self.phony)
 })
