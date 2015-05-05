@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/05 01:54:12 by juloo            ###   ########.fr        #
+#    Updated: 2015/05/05 13:17:19 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,7 @@ from fcntl import ioctl
 from termios import TIOCSTI
 
 variables = OrderedDict([
-	("NAME", ("", "Executable name")),
+	("NAME", ("", "Project name")),
 
 	("DIRS", (".", "Project directories")),
 	("O_DIR", ("o", "Obj directory")),
@@ -42,7 +42,7 @@ variables = OrderedDict([
 	("CPP_CC", ("clang++", "Cpp compiler")),
 	("ASM_CC", ("nasm", "Asm compiler")),
 
-	("LD_CC", ("", None)),
+	("LD_CC", ("", "Linking compiler")),
 
 	("C_FLAGS", ("-Wall -Wextra -Werror -O2", "Clang flags")),
 	("CPP_FLAGS", ("-Wall -Wextra -Werror -O2", "Clang++ flags")),
@@ -72,7 +72,7 @@ class Rule():
 	content = None
 	phony = False
 
-	def __init__(self, name, dep, content = None, phony = False):
+	def __init__(self, name, dep = [], content = None, phony = False):
 		self.name = name
 		self.dependencies = dep
 		self.content = content
@@ -190,9 +190,9 @@ class Makefile():
 			n = 1
 			self.setVar("THREADS", "1")
 		if n > 1:
-			self.rules.insert(0, Rule("all", [], "make -j$(THREADS) $(NAME)", True))
+			self.rules.insert(0, Rule("all", ["$(LIBS)"], "make -j$(THREADS) $(NAME)", True))
 		else:
-			self.rules.insert(0, Rule("all", ["$(NAME)"], None, True))
+			self.rules.insert(0, Rule("all", ["$(LIBS)", "$(NAME)"], None, True))
 
 	def _buildRuleOther(self):
 		dirs = []
@@ -218,7 +218,7 @@ class Makefile():
 				print("\033[31mWarning: Nothing to compile\033[0m")
 			self.setVar("LD_CC", ld_cc)
 		self.getVar("LD_FLAGS")
-		self.rules.insert(0, Rule("$(NAME)", ["$(LIBS)", "$(O_FILES)"],
+		self.rules.insert(0, Rule("$(NAME)", ["$(O_FILES)"],
 			"$(MSG_0) $@ ; $(LD_CC) -o $@ $(O_FILES) $(LD_FLAGS) && echo || $(MSG_1) $@"))
 
 	def _buildRuleSources(self):
@@ -245,11 +245,13 @@ class Makefile():
 	def _buildRuleHeaders(self):
 		for h in self.headers:
 			header = "%s/%s" % h
-			self.rules.append(Rule(header, self._includes(header)))
+			dep = self._includes(header)
+			if len(dep) <= 0:
+				continue
+			self.rules.append(Rule(header, dep))
 
 	def _buildRuleLibs(self):
-		for l in self.getVar("LIBS").split():
-			self.rules.append(Rule(l, [], "make -C %s" % l, True))
+		self.rules.append(Rule("$(LIBS)", [], "make -C $@", True))
 
 	def build(self):
 		self._buildRuleSources()
@@ -258,14 +260,23 @@ class Makefile():
 		self._buildRuleNAME()
 		self._buildRuleAll()
 		self._buildRuleOther()
+		self.rules.insert(0, Rule(".SILENT"))
 
 #
 # Write Makefile
 #
 
 	def _writeVars(self, output):
+		output.write("\n#\n# Config\n#\n")
+		for v in variables:
+			if v in self.var:
+				if variables[v][1] != None:
+					output.write("\n# %s" % variables[v][1])
+				output.write("\n%s := %s\n" % (v, self.var[v]))
+		output.write("\n#\n# Internal\n#\n")
 		for v in self.var:
-			output.write("\n%s := %s\n" % (v, self.var[v]))
+			if not v in variables:
+				output.write("\n%s := %s\n" % (v, self.var[v]))
 
 	def _writeRules(self, output):
 		for r in self.rules:
@@ -286,7 +297,8 @@ class Makefile():
 			output = open(name, "w")
 		except:
 			return
-		output.write("# Makemake\n")
+		output.write("#\n# %s\n#\n" % self.getVar("NAME"))
+		output.write("# %s\n#\n" % name)
 		self._writeVars(output)
 		self._writeBody(output)
 		self._writeRules(output)
