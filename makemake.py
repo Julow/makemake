@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/05 13:17:19 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/05/12 17:38:21 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -160,20 +160,23 @@ class Makefile():
 				return e
 		return None
 
-	def _includes(self, source):
+	def _includes(self, source, incs = []):
 		try:
 			f = open(source, "r")
 		except:
 			return []
-		dep = []
 		for line in f:
 			m = regInclude.match(line)
 			if m != None:
 				for h in self.headers:
 					if h[1] == m.group(1):
-						dep.append("%s/%s" % h)
+						h_file = "%s/%s" % h
+						if h_file in incs:
+							continue
+						incs.append(h_file)
+						self._includes(h_file)
 		f.close()
-		return dep
+		return incs
 
 #
 # Build rules
@@ -242,20 +245,11 @@ class Makefile():
 			self.getVar("%s_HEADS" % e[1])
 		self.setVar("O_FILES", " \\\n\t".join(o_files))
 
-	def _buildRuleHeaders(self):
-		for h in self.headers:
-			header = "%s/%s" % h
-			dep = self._includes(header)
-			if len(dep) <= 0:
-				continue
-			self.rules.append(Rule(header, dep))
-
 	def _buildRuleLibs(self):
 		self.rules.append(Rule("$(LIBS)", [], "make -C $@", True))
 
 	def build(self):
 		self._buildRuleSources()
-		self._buildRuleHeaders()
 		self._buildRuleLibs()
 		self._buildRuleNAME()
 		self._buildRuleAll()
