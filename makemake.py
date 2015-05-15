@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/12 17:38:21 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/05/12 17:35:10 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -55,7 +55,7 @@ variables = OrderedDict([
 	("ASM_HEADS", ("", "Nasm include flags"))
 ]);
 
-extensions = [
+compilers = [
 	(".cpp", "CPP"),
 	(".c", "C"),
 	(".S", "ASM"),
@@ -93,14 +93,14 @@ class Makefile():
 
 	var = None
 	sources = None
-	headers = None
+	files = None
 
 	rules = None
 
 	def __init__(self):
 		self.var = {}
 		self.sources = {}
-		self.headers = []
+		self.files = []
 		self.rules = []
 
 #
@@ -146,17 +146,17 @@ class Makefile():
 		cmd_line = "find %s -type f -print" % self.getVar("DIRS")
 		cmd = Popen(cmd_line.split(), stdout=PIPE)
 		for f in cmd.stdout:
-			f = path.split(f[:-1])
-			if f[1].endswith(".h") or f[1].endswith(".hpp"):
-				self.headers.append(f)
+			f = f[:-1]
+			e = self._compiler(f)
+			if e != None:
+				f = path.split(f)
+				self.sources[f] = (f[0], f[1][::-1].replace(e[0][::-1], "o.")[::-1])
 			else:
-				e = self._extension(f)
-				if e != None:
-					self.sources[f] = (f[0], f[1][::-1].replace(e[0][::-1], "o.")[::-1])
+				self.files.append(f)
 
-	def _extension(self, source):
-		for e in extensions:
-			if source[1].endswith(e[0]):
+	def _compiler(self, source):
+		for e in compilers:
+			if source.endswith(e[0]):
 				return e
 		return None
 
@@ -168,13 +168,12 @@ class Makefile():
 		for line in f:
 			m = regInclude.match(line)
 			if m != None:
-				for h in self.headers:
-					if h[1] == m.group(1):
-						h_file = "%s/%s" % h
-						if h_file in incs:
+				for h in self.files:
+					if h.endswith(m.group(1)):
+						if h in incs:
 							continue
-						incs.append(h_file)
-						self._includes(h_file)
+						incs.append(h)
+						self._includes(h)
 		f.close()
 		return incs
 
@@ -213,7 +212,7 @@ class Makefile():
 	def _buildRuleNAME(self):
 		if not "LD_CC" in self.var:
 			ld_cc = ""
-			for e in extensions:
+			for e in compilers:
 				if e[1] + "_CC" in self.var:
 					ld_cc = self.var[e[1] + "_CC"]
 					break
@@ -228,7 +227,7 @@ class Makefile():
 		o_files = []
 		o_dir = self.getVar("O_DIR")
 		for s in self.sources:
-			e = self._extension(s)
+			e = self._compiler(s[1])
 			o = "%s/%s/%s" % (o_dir, self.sources[s][0], self.sources[s][1])
 			o_files.append(o)
 			source = "%s/%s" % s
