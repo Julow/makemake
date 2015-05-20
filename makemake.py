@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/12 17:35:10 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/05/20 19:11:52 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -52,7 +52,9 @@ variables = OrderedDict([
 
 	("C_HEADS", ("", "Clang include flags")),
 	("CPP_HEADS", ("", "Clang++ include flags")),
-	("ASM_HEADS", ("", "Nasm include flags"))
+	("ASM_HEADS", ("", "Nasm include flags")),
+
+	("MAKEMAKE_TMP", ("tmp_makemake.py", None))
 ]);
 
 compilers = [
@@ -208,7 +210,7 @@ class Makefile():
 		self.rules.append(Rule("fclean", ["clean"], "rm -f $(NAME)", True))
 		self.rules.append(Rule("re", ["fclean", "all"], None, True))
 		self.rules.append(Rule("make", ["fclean"],
-			"(curl -f https://raw.githubusercontent.com/Julow/makemake/master/makemake.py | python) && echo Done || echo Fail", True))
+			"curl -f https://raw.githubusercontent.com/Julow/makemake/master/makemake.py > $(MAKEMAKE_TMP)\npython $(MAKEMAKE_TMP)\nrm -f $(MAKEMAKE_TMP)", True))
 
 	def _buildRuleNAME(self):
 		if not "LD_CC" in self.var:
@@ -301,6 +303,7 @@ class Makefile():
 makefile = Makefile()
 makefile.parse("Makefile")
 makefile.getVar("NAME")
+makefile.getVar("MAKEMAKE_TMP")
 makefile.findFiles()
 makefile.build()
 makefile.write("Makefile")
