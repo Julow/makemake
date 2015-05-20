@@ -207,7 +207,8 @@ class Makefile():
 		self.rules.append(Rule("clean", [], "rm -f $(O_FILES) 2> /dev/null || true\nrmdir -p %s $(O_DIR) 2> /dev/null || true" % " ".join(sorted(dirs, reverse=True)), True))
 		self.rules.append(Rule("fclean", ["clean"], "rm -f $(NAME)", True))
 		self.rules.append(Rule("re", ["fclean", "all"], None, True))
-		self.rules.append(Rule("make", ["fclean"], "python makemake.py", True))
+		self.rules.append(Rule("make", ["fclean"],
+			"(curl -f https://raw.githubusercontent.com/Julow/makemake/master/makemake.py | python) && echo Done || echo Fail", True))
 
 	def _buildRuleNAME(self):
 		if not "LD_CC" in self.var:
