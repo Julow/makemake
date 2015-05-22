@@ -281,9 +281,9 @@ class Makefile():
 
 	def _writeBody(self, output):
 		if self.getVar("NICE_OUTPUT") == "0":
-			output.write("\nMSG_0 := printf '\\033[0;32m%s\\033[0;0m\\n'")
-			output.write("MSG_1 := printf '\\033[0;31m%s\\033[0;0m\\n'")
-			output.write("MSG_END := true")
+			output.write("\nMSG_0 := printf '\\033[0;32m%s\\033[0;0m\\n'\n")
+			output.write("MSG_1 := printf '\\033[0;31m%s\\033[0;0m\\n'\n")
+			output.write("MSG_END := true\n")
 		else:
 			maxlen = 0
 			for r in self.rules:
