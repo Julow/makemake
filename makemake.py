@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/20 19:11:52 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/05/22 13:08:16 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -54,6 +54,7 @@ variables = OrderedDict([
 	("CPP_HEADS", ("", "Clang++ include flags")),
 	("ASM_HEADS", ("", "Nasm include flags")),
 
+	("NICE_OUTPUT", ("1", None)),
 	("MAKEMAKE_TMP", ("tmp_makemake.py", None))
 ]);
 
@@ -279,14 +280,18 @@ class Makefile():
 			r.write(output)
 
 	def _writeBody(self, output):
-		m = 0
-		for r in self.rules:
-			if len(r.name) > m:
-				m = len(r.name)
-		output.write("\nMSG_0 := printf '\\033[0;32m%%-%(maxlen)d.%(maxlen)ds\\033[0;0m\\r'\n" %
-			{"maxlen": m})
-		output.write("MSG_1 := printf '\\033[0;31m%%-%(maxlen)d.%(maxlen)ds\\033[0;0m\\n'\n" %
-			{"maxlen": m})
+		if self.getVar("NICE_OUTPUT") == "0":
+			output.write("\nMSG_0 := printf '%s\n'")
+			output.write("\nMSG_1 := printf '\\033[0;31m%s\\033[0;0m\\n'")
+		else:
+			maxlen = 0
+			for r in self.rules:
+				if len(r.name) > maxlen:
+					maxlen = len(r.name)
+			output.write("\nMSG_0 := printf '\\033[0;32m%%-%(maxlen)d.%(maxlen)ds\\033[0;0m\\r'\n" %
+				{"maxlen": maxlen})
+			output.write("MSG_1 := printf '\\033[0;31m%%-%(maxlen)d.%(maxlen)ds\\033[0;0m\\n'\n" %
+				{"maxlen": maxlen})
 
 	def write(self, name):
 		try:
