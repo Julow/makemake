@@ -225,7 +225,7 @@ class Makefile():
 			self.setVar("LD_CC", ld_cc)
 		self.getVar("LD_FLAGS")
 		self.rules.insert(0, Rule("$(NAME)", ["$(O_FILES)"],
-			"$(MSG_0) $@ ; $(LD_CC) -o $@ $(O_FILES) $(LD_FLAGS) && echo || $(MSG_1) $@"))
+			"$(MSG_0) $@ ; $(LD_CC) -o $@ $(O_FILES) $(LD_FLAGS) && $(MSG_END) || $(MSG_1) $@"))
 
 	def _buildRuleSources(self):
 		o_files = []
@@ -281,8 +281,9 @@ class Makefile():
 
 	def _writeBody(self, output):
 		if self.getVar("NICE_OUTPUT") == "0":
-			output.write("\nMSG_0 := printf '%s\n'")
-			output.write("\nMSG_1 := printf '\\033[0;31m%s\\033[0;0m\\n'")
+			output.write("\nMSG_0 := printf '\\033[0;32m%s\\033[0;0m\\n'")
+			output.write("MSG_1 := printf '\\033[0;31m%s\\033[0;0m\\n'")
+			output.write("MSG_END := true")
 		else:
 			maxlen = 0
 			for r in self.rules:
@@ -292,6 +293,7 @@ class Makefile():
 				{"maxlen": maxlen})
 			output.write("MSG_1 := printf '\\033[0;31m%%-%(maxlen)d.%(maxlen)ds\\033[0;0m\\n'\n" %
 				{"maxlen": maxlen})
+			output.write("MSG_END := printf '\\n'\n")
 
 	def write(self, name):
 		try:
