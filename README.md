@@ -4,17 +4,26 @@ Makefile generator
 
 ### Usage
 
-`./makemake.py`;
+To update the Makefile:
 
-Then Makemake will prompt you for some configs<br />
-_(NAME, directories, flags, etc...)_
+`make make`;
 
-Keep Makemake and run `make make` to _refresh_ the `Makefile`.
+Create it:
 
-### Install
+```shell
+curl -O https://raw.githubusercontent.com/Julow/makemake/master/makemake.py
+python makemake.py
+# It will prompt you for config
+rm makemake.py
+```
 
-Download:<br />
-`curl -O https://raw.githubusercontent.com/Julow/makemake/master/makemake.py`
+### Advenced config
 
-And run:<br />
-`python makemake.py`
+The config is store at the top of the `Makefile`
+
+Hidden config:
+* `THREADS` Number of jobs to run simultaneously _(make -j)_ (Default: 1)
+* `NICE_OUTPUT` (bool) Show only current compilation (Default: 1)
+* `LD_CC` Compiler used to link the executable (Default: compiler used to build objs)
+
+_Make sure the Makefile is ready by using `make make`_
