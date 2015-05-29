@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/29 21:25:25 by juloo            ###   ########.fr        #
+#    Updated: 2015/05/30 01:16:58 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ from re import compile
 from subprocess import Popen, PIPE
 from os import path
 from collections import OrderedDict
-from sys import argv, stdout
+from sys import argv, stdout, exit
 from fcntl import ioctl
 from termios import TIOCSTI
 
@@ -66,6 +66,8 @@ compilers = [
 
 regVar = compile('^\s*(\w+)\s*[:]?=\s*(.*)$')
 regInclude = compile('^\s*#\s*include\s*[<"]([^">]+)[">]\s*$')
+
+interactiveMode = True
 
 class Rule():
 
@@ -127,7 +129,7 @@ class Makefile():
 		if name in self.var:
 			return self.var[name]
 		if name in variables:
-			if variables[name][1] == None:
+			if variables[name][1] == None or not interactiveMode:
 				data = variables[name][0]
 			else:
 				stdout.write("\033[33m%s:\033[39m " % variables[name][1])
@@ -304,13 +306,18 @@ class Makefile():
 		self._writeRules(output)
 		output.close()
 
-if len(argv) > 1 and argv[1] == "-h":
-	print("Makemake")
-	print("Currently no options")
-else:
-	makefile = Makefile()
-	makefile.parse("Makefile")
-	makefile.getVar("NAME")
-	makefile.findFiles()
-	makefile.build()
-	makefile.write("Makefile")
+if len(argv) > 1:
+	if argv[1] == "--test":
+		interactiveMode = False
+	else:
+		print("Makemake")
+		print("Options:")
+		print("  --test      Run")
+		exit()
+
+makefile = Makefile()
+makefile.parse("Makefile")
+makefile.getVar("NAME")
+makefile.findFiles()
+makefile.build()
+makefile.write("Makefile")
