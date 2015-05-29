@@ -54,8 +54,7 @@ variables = OrderedDict([
 	("CPP_HEADS", ("", "Clang++ include flags")),
 	("ASM_HEADS", ("", "Nasm include flags")),
 
-	("NICE_OUTPUT", ("1", None)),
-	("MAKEMAKE_TMP", ("tmp_makemake.py", None))
+	("NICE_OUTPUT", ("1", None))
 ]);
 
 compilers = [
@@ -210,8 +209,6 @@ class Makefile():
 		self.rules.append(Rule("clean", [], "rm -f $(O_FILES) 2> /dev/null || true\nrmdir -p %s $(O_DIR) 2> /dev/null || true" % " ".join(sorted(dirs, reverse=True)), True))
 		self.rules.append(Rule("fclean", ["clean"], "rm -f $(NAME)", True))
 		self.rules.append(Rule("re", ["fclean", "all"], None, True))
-		self.rules.append(Rule("make", ["fclean"],
-			"curl -f https://raw.githubusercontent.com/Julow/makemake/master/makemake.py > $(MAKEMAKE_TMP)\npython $(MAKEMAKE_TMP)\nrm -f $(MAKEMAKE_TMP)", True))
 
 	def _buildRuleNAME(self):
 		if not "LD_CC" in self.var:
@@ -310,7 +307,6 @@ class Makefile():
 makefile = Makefile()
 makefile.parse("Makefile")
 makefile.getVar("NAME")
-makefile.getVar("MAKEMAKE_TMP")
 makefile.findFiles()
 makefile.build()
 makefile.write("Makefile")
