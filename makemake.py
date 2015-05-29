@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/22 13:08:16 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/05/29 21:25:25 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -304,9 +304,13 @@ class Makefile():
 		self._writeRules(output)
 		output.close()
 
-makefile = Makefile()
-makefile.parse("Makefile")
-makefile.getVar("NAME")
-makefile.findFiles()
-makefile.build()
-makefile.write("Makefile")
+if len(argv) > 1 and argv[1] == "-h":
+	print("Makemake")
+	print("Currently no options")
+else:
+	makefile = Makefile()
+	makefile.parse("Makefile")
+	makefile.getVar("NAME")
+	makefile.findFiles()
+	makefile.build()
+	makefile.write("Makefile")
