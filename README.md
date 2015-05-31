@@ -12,6 +12,13 @@ To update or create a new Makefile:
 
 Makemake will prompt you for config
 
+### Get it
+
+Using brew: _([brew tap](https://github.com/Julow/homebrew-tap))_<br />
+`brew install Julow/tap/makemake`;
+
+Without brew: Download `makemake.py` and do whatever you want
+
 ### Rules
 
 Makefile rules:
