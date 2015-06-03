@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/05/30 01:16:58 by juloo            ###   ########.fr        #
+#    Updated: 2015/06/03 16:46:52 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -58,10 +58,12 @@ variables = OrderedDict([
 ]);
 
 compilers = [
-	(".cpp", "CPP"),
-	(".c", "C"),
-	(".S", "ASM"),
-	(".s", "ASM")
+	(".cpp", "CPP", "clang++", "$(LD_CC) -o $@ $(O_FILES) $(LD_FLAGS)"),
+	(".c", "C", "clang", "$(LD_CC) -o $@ $(O_FILES) $(LD_FLAGS)"),
+	(".S", "ASM", "nasm", "$(LD_CC) $(LD_FLAGS) -o $@ $(O_FILES)"),
+	(".s", "ASM", "nasm", "$(LD_CC) $(LD_FLAGS) -o $@ $(O_FILES)"),
+	(None, "AR", "ar", "$(LD_CC) $(LD_FLAGS) $@ $(O_FILES)"),
+	(None, None, None, "$(LD_CC) $(LD_FLAGS) $@ $(O_FILES)")
 ]
 
 regVar = compile('^\s*(\w+)\s*[:]?=\s*(.*)$')
@@ -160,7 +162,7 @@ class Makefile():
 
 	def _compiler(self, source):
 		for e in compilers:
-			if source.endswith(e[0]):
+			if e[0] != None and source.endswith(e[0]):
 				return e
 		return None
 
@@ -214,17 +216,24 @@ class Makefile():
 
 	def _buildRuleNAME(self):
 		if not "LD_CC" in self.var:
-			ld_cc = ""
+			ld_cc = None
 			for e in compilers:
-				if e[1] + "_CC" in self.var:
+				if e[1] != None and e[1] + "_CC" in self.var:
 					ld_cc = self.var[e[1] + "_CC"]
 					break
 			if ld_cc == None:
 				print("\033[31mWarning: Nothing to compile\033[0m")
 			self.setVar("LD_CC", ld_cc)
+		else:
+			ld_cc = self.getVar("LD_CC")
+		ld_line = ""
+		for e in compilers:
+			if e[2] == ld_cc or e[2] == None:
+				ld_line = e[3]
+				break
 		self.getVar("LD_FLAGS")
 		self.rules.insert(0, Rule("$(NAME)", ["$(O_FILES)"],
-			"$(MSG_0) $@ ; $(LD_CC) -o $@ $(O_FILES) $(LD_FLAGS) && $(MSG_END) || $(MSG_1) $@"))
+			"$(MSG_0) $@ ; %s && $(MSG_END) || $(MSG_1) $@" % ld_line))
 
 	def _buildRuleSources(self):
 		o_files = []
