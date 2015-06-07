@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/06/07 12:26:06 by juloo            ###   ########.fr        #
+#    Updated: 2015/06/07 23:47:02 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,33 +28,42 @@ from sys import argv, stdout, exit
 from fcntl import ioctl
 from termios import TIOCSTI
 
+def includeSearch(make):
+	dirs = []
+	for h in make.files:
+		if h.endswith(".h") or h.endswith(".hpp"):
+			h = "-I %s" % path.dirname(h)
+			if not h in dirs:
+				dirs.append(h)
+	return ' '.join(dirs)
+
 variables = OrderedDict([
-	("NAME", ("", "Project name")),
+	("NAME", ("", "Project name", None)),
 
-	("DIRS", (".", "Project directories")),
-	("O_DIR", ("o", "Obj directory")),
+	("DIRS", ("srcs include", "Project directories", None)),
+	("O_DIR", ("o", "Obj directory", None)),
 
-	("LIBS", ("", "Makefiles to call")),
+	("LIBS", ("", "Makefiles to call", None)),
 
-	("THREADS", ("1", "Number of threads")),
+	("THREADS", ("1", "Number of threads", None)),
 
-	("C_CC", ("clang", "C compiler")),
-	("CPP_CC", ("clang++", "Cpp compiler")),
-	("ASM_CC", ("nasm", "Asm compiler")),
+	("C_CC", ("clang", "C compiler", None)),
+	("CPP_CC", ("clang++", "C++ compiler", None)),
+	("ASM_CC", ("nasm", "ASM compiler", None)),
 
-	("LD_CC", ("", "Linking compiler")),
+	("LD_CC", ("", "Linking compiler", None)),
 
-	("C_FLAGS", ("-Wall -Wextra -Werror -O2", "Clang flags")),
-	("CPP_FLAGS", ("-Wall -Wextra -Werror -O2", "Clang++ flags")),
-	("ASM_FLAGS", ("-Wall -Werror", "Nasm flags")),
+	("C_FLAGS", ("-Wall -Wextra -Werror -O2", "C flags", None)),
+	("CPP_FLAGS", ("-Wall -Wextra -Werror -O2", "C++ flags", None)),
+	("ASM_FLAGS", ("-Wall -Werror", "ASM flags", None)),
 
-	("LD_FLAGS", ("", "Linking flags")),
+	("LD_FLAGS", ("", "Linking flags", None)),
 
-	("C_HEADS", ("", "Clang include flags")),
-	("CPP_HEADS", ("", "Clang++ include flags")),
-	("ASM_HEADS", ("", "Nasm include flags")),
+	("C_HEADS", ("", "C include flags", includeSearch)),
+	("CPP_HEADS", ("", "C++ include flags", includeSearch)),
+	("ASM_HEADS", ("", "ASM include flags", includeSearch)),
 
-	("NICE_OUTPUT", ("1", None))
+	("NICE_OUTPUT", ("1", None, None))
 ]);
 
 compilers = [
@@ -136,7 +145,11 @@ class Makefile():
 			else:
 				stdout.write("\033[33m%s:\033[39m " % variables[name][1])
 				stdout.flush()
-				for c in variables[name][0]:
+				if variables[name][2] != None:
+					defVar = variables[name][2](self)
+				else:
+					defVar = variables[name][0]
+				for c in defVar:
 					ioctl(0, TIOCSTI, c)
 				data = raw_input()
 			data.strip()
@@ -329,4 +342,5 @@ makefile.parse("Makefile")
 makefile.getVar("NAME")
 makefile.findFiles()
 makefile.build()
+makefile.getVar("LIBS")
 makefile.write("Makefile")
