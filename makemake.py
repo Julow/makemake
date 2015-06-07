@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/06/03 16:46:52 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/06/07 12:26:06 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -156,7 +156,7 @@ class Makefile():
 			e = self._compiler(f)
 			if e != None:
 				f = path.split(f)
-				self.sources[f] = (f[0], f[1][::-1].replace(e[0][::-1], "o.")[::-1])
+				self.sources[f] = (f[0].replace("..", "_.."), f[1][::-1].replace(e[0][::-1], "o.")[::-1])
 			else:
 				self.files.append(f)
 
@@ -238,13 +238,13 @@ class Makefile():
 	def _buildRuleSources(self):
 		o_files = []
 		o_dir = self.getVar("O_DIR")
-		for s in self.sources:
+		for s in sorted(self.sources):
 			e = self._compiler(s[1])
 			o = "%s/%s/%s" % (o_dir, self.sources[s][0], self.sources[s][1])
 			o_files.append(o)
 			source = "%s/%s" % s
 			dep = [source]
-			dep += self._includes(source)
+			dep += sorted(self._includes(source))
 			self.rules.append(Rule(o, dep,
 				"mkdir -p %(o_dir)s 2> /dev/null || true\n$(MSG_0) $< ; %(cc)s $(%(flags)s) $(%(heads)s) -c -o $@ $< || ($(MSG_1) $< && false)" % {
 					"o_dir": "%s/%s" % (o_dir, self.sources[s][0]),
