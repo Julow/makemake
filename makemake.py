@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/06/07 23:47:02 by juloo            ###   ########.fr        #
+#    Updated: 2015/06/30 23:35:14 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -43,7 +43,8 @@ variables = OrderedDict([
 	("DIRS", ("srcs include", "Project directories", None)),
 	("O_DIR", ("o", "Obj directory", None)),
 
-	("LIBS", ("", "Makefiles to call", None)),
+	("LIBS", ("", "Makefiles to call (directory)", None)),
+	("MODULES", ("", "Modules to init (directory)", None)),
 
 	("THREADS", ("1", "Number of threads", None)),
 
@@ -77,6 +78,8 @@ compilers = [
 
 regVar = compile('^\s*(\w+)\s*[:]?=\s*(.*)$')
 regInclude = compile('^\s*#\s*include\s*[<"]([^">]+)[">]\s*$')
+
+modules_rule = "$(addsuffix /.git,$(MODULES))"
 
 interactiveMode = True
 
@@ -211,9 +214,9 @@ class Makefile():
 			n = 1
 			self.setVar("THREADS", "1")
 		if n > 1:
-			self.rules.insert(0, Rule("all", ["$(LIBS)"], "make -j$(THREADS) $(NAME)", True))
+			self.rules.insert(0, Rule("all", [modules_rule, "$(LIBS)"], "make -j$(THREADS) $(NAME)", True))
 		else:
-			self.rules.insert(0, Rule("all", ["$(LIBS)", "$(NAME)"], None, True))
+			self.rules.insert(0, Rule("all", [modules_rule, "$(LIBS)", "$(NAME)"], None, True))
 
 	def _buildRuleOther(self):
 		dirs = []
@@ -271,6 +274,7 @@ class Makefile():
 
 	def _buildRuleLibs(self):
 		self.rules.append(Rule("$(LIBS)", [], "make -C $@", True))
+		self.rules.append(Rule(modules_rule, [], "git submodule init $(@:.git=)\ngit submodule update $(@:.git=)", False))
 
 	def build(self):
 		self._buildRuleSources()
@@ -343,4 +347,5 @@ makefile.getVar("NAME")
 makefile.findFiles()
 makefile.build()
 makefile.getVar("LIBS")
+makefile.getVar("MODULES")
 makefile.write("Makefile")
