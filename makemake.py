@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/07/07 00:01:09 by juloo            ###   ########.fr        #
+#    Updated: 2015/07/07 00:22:40 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -99,17 +99,23 @@ class Rule():
 	dependencies = None
 	content = None
 	phony = False
+	orderOnly = None
 
-	def __init__(self, name, dep = [], content = None, phony = False):
+	def __init__(self, name, dep = [], content = None, phony = False, orderOnly = []):
 		self.name = name
 		self.dependencies = dep
 		self.content = content
 		self.phony = phony
+		self.orderOnly = orderOnly
 
 	def write(self, output):
 		output.write("\n%s:" % self.name)
 		for d in self.dependencies:
 			output.write(" %s" % d)
+		if len(self.orderOnly) > 0:
+			output.write(" |")
+			for d in self.orderOnly:
+				output.write(" %s" % d)
 		output.write("\n")
 		if self.content != None:
 			for l in self.content.split("\n"):
@@ -123,12 +129,15 @@ class Makefile():
 	sources = None
 	files = None
 
+	o_dirs = None
+
 	rules = None
 
 	def __init__(self):
 		self.var = {}
 		self.sources = {}
 		self.files = []
+		self.o_dirs = []
 		self.rules = []
 
 #
@@ -229,14 +238,9 @@ class Makefile():
 			self.rules.insert(0, Rule("all", [modules_rule, "$(LIBS)", "$(NAME)"], None, True))
 
 	def _buildRuleOther(self):
-		dirs = []
-		o_dir = self.getVar("O_DIR")
-		for s in self.sources:
-			o = "%s/%s" % (o_dir, self.sources[s][0])
-			if o in dirs:
-				continue
-			dirs.append(o)
-		self.rules.append(Rule("clean", [], "rm -f $(O_FILES) 2> /dev/null || true\nrmdir -p %s $(O_DIR) 2> /dev/null || true" % " ".join(sorted(dirs, reverse=True)), True))
+		self.setVar("O_DIRS", ' '.join(sorted(self.o_dirs, reverse=True)))
+		self.rules.append(Rule("$(O_DIRS)", [], "mkdir -p $@ 2> /dev/null || true"))
+		self.rules.append(Rule("clean", [], "rm -f $(O_FILES) 2> /dev/null || true\nrmdir -p $(O_DIRS) $(O_DIR) 2> /dev/null || true", True))
 		self.rules.append(Rule("fclean", ["clean"], "rm -f $(NAME)", True))
 		self.rules.append(Rule("re", ["fclean", "all"], None, True))
 
@@ -266,18 +270,20 @@ class Makefile():
 		o_dir = self.getVar("O_DIR")
 		for s in sorted(self.sources):
 			e = self._compiler(s[1])
-			o = "%s/%s/%s" % (o_dir, self.sources[s][0], self.sources[s][1])
+			o_path = "%s/%s" % (o_dir, self.sources[s][0])
+			if not o_path in self.o_dirs:
+				self.o_dirs.append(o_path)
+			o = "%s/%s" % (o_path, self.sources[s][1])
 			o_files.append(o)
 			source = "%s/%s" % s
 			dep = [source]
 			dep += sorted(self._includes(source))
 			self.rules.append(Rule(o, dep,
-				"mkdir -p %(o_dir)s 2> /dev/null || true\n$(MSG_0) $< ; %(cc)s $(%(flags)s) $(%(heads)s) -c -o $@ $< || ($(MSG_1) $< && false)" % {
-					"o_dir": "%s/%s" % (o_dir, self.sources[s][0]),
+				"$(MSG_0) $< ; %(cc)s $(%(flags)s) $(%(heads)s) -c -o $@ $< || ($(MSG_1) $< && false)" % {
 					"cc": self.getVar("%s_CC" % e[1]),
 					"flags": "%s_FLAGS" % e[1],
 					"heads": "%s_HEADS" % e[1]
-				}))
+				}, False, [o_path]))
 			self.getVar("%s_FLAGS" % e[1])
 			self.getVar("%s_HEADS" % e[1])
 		self.setVar("O_FILES", " \\\n\t".join(o_files))
