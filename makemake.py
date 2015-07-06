@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/06/30 23:35:14 by juloo            ###   ########.fr        #
+#    Updated: 2015/07/07 00:01:09 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -37,6 +37,16 @@ def includeSearch(make):
 				dirs.append(h)
 	return ' '.join(dirs)
 
+def modulesSearch(make):
+	modules = []
+	cmd_line = "git submodule status"
+	cmd = Popen(cmd_line.split(), stdout=PIPE)
+	for l in cmd.stdout:
+		m = l.split()
+		if len(m) == 2:
+			modules.append(m[1])
+	return ' '.join(modules)
+
 variables = OrderedDict([
 	("NAME", ("", "Project name", None)),
 
@@ -44,7 +54,7 @@ variables = OrderedDict([
 	("O_DIR", ("o", "Obj directory", None)),
 
 	("LIBS", ("", "Makefiles to call (directory)", None)),
-	("MODULES", ("", "Modules to init (directory)", None)),
+	("MODULES", ("", "Modules to init (directory)", modulesSearch)),
 
 	("THREADS", ("1", "Number of threads", None)),
 
