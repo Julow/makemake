@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/07/07 00:22:40 by juloo            ###   ########.fr        #
+#    Updated: 2015/07/25 21:17:15 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -201,7 +201,7 @@ class Makefile():
 				return e
 		return None
 
-	def _includes(self, source, incs = []):
+	def _includes(self, source, incs):
 		try:
 			f = open(source, "r")
 		except:
@@ -214,7 +214,7 @@ class Makefile():
 						if h in incs:
 							continue
 						incs.append(h)
-						self._includes(h)
+						self._includes(h, incs)
 		f.close()
 		return incs
 
@@ -277,7 +277,7 @@ class Makefile():
 			o_files.append(o)
 			source = "%s/%s" % s
 			dep = [source]
-			dep += sorted(self._includes(source))
+			dep += sorted(self._includes(source, []))
 			self.rules.append(Rule(o, dep,
 				"$(MSG_0) $< ; %(cc)s $(%(flags)s) $(%(heads)s) -c -o $@ $< || ($(MSG_1) $< && false)" % {
 					"cc": self.getVar("%s_CC" % e[1]),
