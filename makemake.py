@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/08/03 19:26:23 by juloo            ###   ########.fr        #
+#    Updated: 2015/08/03 19:33:47 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,8 +25,6 @@ from subprocess import Popen, PIPE
 from os import path
 from collections import OrderedDict
 from sys import argv, stdout, exit
-from fcntl import ioctl
-from termios import TIOCSTI
 
 try:
 	from fcntl import ioctl
