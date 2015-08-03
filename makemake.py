@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/01 23:15:55 by juloo             #+#    #+#              #
-#    Updated: 2015/07/25 21:17:15 by juloo            ###   ########.fr        #
+#    Updated: 2015/08/03 19:26:23 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,6 +27,30 @@ from collections import OrderedDict
 from sys import argv, stdout, exit
 from fcntl import ioctl
 from termios import TIOCSTI
+
+try:
+	from fcntl import ioctl
+	from termios import TIOCSTI
+
+	def ask_user(prompt = None, default = ""):
+		if prompt != None:
+			stdout.write(prompt)
+			stdout.flush()
+		for c in default:
+			ioctl(0, TIOCSTI, c)
+		return raw_input()
+
+except ImportError:
+	def ask_user(prompt = None, default = ""):
+		if prompt != None:
+			stdout.write(prompt)
+		if len(default) > 0:
+			stdout.write("(%s): " % default)
+		stdout.flush()
+		r = raw_input()
+		if len(r) <= 0:
+			return default
+		return r
 
 def includeSearch(make):
 	dirs = []
@@ -165,15 +189,11 @@ class Makefile():
 			if variables[name][1] == None or not interactiveMode:
 				data = variables[name][0]
 			else:
-				stdout.write("\033[33m%s:\033[39m " % variables[name][1])
-				stdout.flush()
 				if variables[name][2] != None:
 					defVar = variables[name][2](self)
 				else:
 					defVar = variables[name][0]
-				for c in defVar:
-					ioctl(0, TIOCSTI, c)
-				data = raw_input()
+				data = ask_user("\033[33m%s:\033[39m " % variables[name][1], defVar)
 			data.strip()
 			self.setVar(name, data)
 			return data
