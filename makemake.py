@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/08/21 22:25:48 by juloo            ###   ########.fr        #
+#    Updated: 2015/08/21 22:45:49 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,6 +45,8 @@ LIBS := %(libs)s
 FLAGS := -Wall -Wextra -O2
 # Compilation flags
 HEADS := $(addprefix -I,$(DIRS))
+# Linking flags
+LINKS :=
 
 # Objects directory
 O_DIR := o
@@ -63,11 +65,11 @@ include $(DEPEND)
 
 # Linking
 $(NAME): $(MODULE_RULES) $(LIBS) $(O_FILES)
-	@echo done
+	clang $(FLAGS) -o $@ $(O_FILES) $(LINKS)
 
 # Compile
 $(O_DIR)/%%.o:
-	echo Compiling $< to $@
+	clang $(FLAGS) $(HEADS) -c $< -o $@
 
 # Init submodules
 $(MODULE_RULES):
@@ -84,11 +86,12 @@ $(O_DIR)/%%/:
 
 # Clean obj files
 clean:
-	echo clean
+	rm -f $(O_FILES)
 
 # Clean everything
 fclean: clean
-	echo fclean
+	rm -f $(DEPEND)
+	rm -f $(NAME)
 
 # Clean and make
 re: fclean all
