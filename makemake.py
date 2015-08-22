@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/08/22 12:23:22 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/08/22 13:11:35 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -52,19 +52,19 @@ LINKS :=
 O_DIR := o
 
 # Depend file name
-DEPEND := .depend
+DEPEND := depend.mk
 
 # tmp
 MODULE_RULES := $(addsuffix /.git,$(MODULES))
 
 # Default rule (need to be before any include)
-all: $(NAME)
+all: $(MODULE_RULES) $(LIBS) $(NAME)
 
 # Include $(O_FILES) and dependencies
 -include $(DEPEND)
 
 # Linking
-$(NAME): $(MODULE_RULES) $(LIBS) $(O_FILES)
+$(NAME): $(O_FILES)
 	clang $(FLAGS) -o $@ $(O_FILES) $(LINKS) && printf '\\033[32m$@\\033[0m\\n'
 
 # Compiling
@@ -90,14 +90,14 @@ clean:
 
 # Clean everything
 fclean: clean
-	rm -f $(NAME) $(DEPEND)
+	rm -f $(NAME)
 
 # Clean and make
 re: fclean all
 
 # Update $(DEPEND) file
 $(DEPEND): Makefile
-	makemake
+	makemake || printf "\\033[31mCannot remake $(DEPEND)\\033[0m\\n"
 
 .SILENT:
 .PHONY: all $(LIBS) clean fclean re
