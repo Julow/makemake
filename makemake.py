@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/08/22 12:12:29 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/08/22 12:23:22 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -61,15 +61,15 @@ MODULE_RULES := $(addsuffix /.git,$(MODULES))
 all: $(NAME)
 
 # Include $(O_FILES) and dependencies
-include $(DEPEND)
+-include $(DEPEND)
 
 # Linking
 $(NAME): $(MODULE_RULES) $(LIBS) $(O_FILES)
-	clang $(FLAGS) -o $@ $(O_FILES) $(LINKS) && printf '\\033[32m$@\\033[0m'
+	clang $(FLAGS) -o $@ $(O_FILES) $(LINKS) && printf '\\033[32m$@\\033[0m\\n'
 
-# Compile
+# Compiling
 $(O_DIR)/%%.o:
-	clang $(FLAGS) $(HEADS) -c $< -o $@ && printf '\\033[32m$<\\033[0m'
+	clang $(FLAGS) $(HEADS) -c $< -o $@ && printf '\\033[32m$<\\033[0m\\n'
 
 # Init submodules
 $(MODULE_RULES):
@@ -90,15 +90,14 @@ clean:
 
 # Clean everything
 fclean: clean
-	rm -f $(DEPEND)
-	rm -f $(NAME)
+	rm -f $(NAME) $(DEPEND)
 
 # Clean and make
 re: fclean all
 
 # Update $(DEPEND) file
 $(DEPEND): Makefile
-	echo need to do makemake
+	makemake
 
 .SILENT:
 .PHONY: all $(LIBS) clean fclean re
@@ -199,7 +198,6 @@ def check_makefile(name):
 				'modules': " ".join(guess_modules()),
 				'libs': " ".join(libs)
 			})
-			print "Generated %s" % name
 
 #
 # Generate $(DEPEND) file
@@ -258,7 +256,6 @@ def generate_depend(name, dirs, o_dir):
 				'includes': " ".join(obj_files[obj]),
 				'o_dir': path.dirname(obj)
 			})
-		print "Generated %s" % name
 
 #
 # Main
