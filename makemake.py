@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/08/21 22:45:49 by juloo            ###   ########.fr        #
+#    Updated: 2015/08/22 12:12:29 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -65,11 +65,11 @@ include $(DEPEND)
 
 # Linking
 $(NAME): $(MODULE_RULES) $(LIBS) $(O_FILES)
-	clang $(FLAGS) -o $@ $(O_FILES) $(LINKS)
+	clang $(FLAGS) -o $@ $(O_FILES) $(LINKS) && printf '\\033[32m$@\\033[0m'
 
 # Compile
 $(O_DIR)/%%.o:
-	clang $(FLAGS) $(HEADS) -c $< -o $@
+	clang $(FLAGS) $(HEADS) -c $< -o $@ && printf '\\033[32m$<\\033[0m'
 
 # Init submodules
 $(MODULE_RULES):
