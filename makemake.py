@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/08/24 00:29:58 by juloo            ###   ########.fr        #
+#    Updated: 2015/08/24 01:12:19 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,9 +24,14 @@
 
 MAKEFILE_NAME = "Makefile"
 
+MAX_LINE_LENGTH = 80
+
 SUB_MAKEFILE_NAMES = ["Makefile"]
 
 EXCLUDE_DIRS = [".git"]
+
+O_FILES_VAR = "O_FILES :=\t"
+DEPEND_RULE = "%s:"
 
 DEFAULT_MAKEFILE = """#
 
@@ -112,8 +117,6 @@ _debug:
 .SILENT:
 .PHONY: all $(LIBS) clean fclean re debug rebug _debug
 """
-
-DEPEND_RULE = "%(o_file)s: %(includes)s | %(o_dir)s\n"
 
 import re, os
 from os import path
@@ -244,6 +247,24 @@ def get_obj_files(source_files, include_files, o_dir):
 		obj_files[obj] = get_includes(source, include_files)
 	return obj_files
 
+# Print a list of file respecting MAX_LINE_LENGTH
+def print_file_list(out, files, offset, indent, sep, endl):
+	indent_len = len(indent.expandtabs(4))
+	sep_len = len(sep.expandtabs(4))
+	endl_len = len(endl.expandtabs(4))
+	for f in files:
+		if (len(f) + offset + sep_len + endl_len) > MAX_LINE_LENGTH and offset != indent_len:
+			offset = indent_len
+			out.write(endl)
+			out.write("\n")
+			out.write(indent)
+		if offset > indent_len:
+			out.write(sep)
+			offset += sep_len
+		out.write(f)
+		offset += len(f)
+	return offset
+
 #
 def generate_depend(name, dirs, o_dir):
 	source_files = []
@@ -254,17 +275,19 @@ def generate_depend(name, dirs, o_dir):
 		include_files.update(get_include_files(f_tree, d))
 	obj_files = get_obj_files(source_files, include_files, o_dir)
 	with open(name, 'w') as f:
-		f.write("O_FILES := \\\n")
+		f.write(O_FILES_VAR)
 		obj_file_names = sorted(obj_files.keys())
+		print_file_list(f, obj_file_names, len(O_FILES_VAR), "\t\t\t", " ", " \\")
+		f.write("\n\n")
 		for obj_name in obj_file_names:
-			f.write("	%s \\\n" % obj_name)
-		f.write("\n")
-		for obj_name in obj_file_names:
-			f.write(DEPEND_RULE % {
-				'o_file': obj_name,
-				'includes': " ".join(obj_files[obj_name]),
-				'o_dir': path.dirname(obj_name)
-			})
+			rule_name = DEPEND_RULE % obj_name
+			f.write(rule_name)
+			offset = print_file_list(f, obj_files[obj_name], len(rule_name), "\t", " ", " \\")
+			o_dir_dep = "| %s" % path.dirname(obj_name)
+			if (len(o_dir_dep) + 1 + offset) > MAX_LINE_LENGTH:
+				f.write(" \\\n\t%s\n" % o_dir_dep)
+			else:
+				f.write(" %s\n" % o_dir_dep)
 
 #
 # Main
