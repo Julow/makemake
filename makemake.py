@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/08/22 13:11:35 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/08/24 00:29:58 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -84,6 +84,12 @@ $(LIBS):
 $(O_DIR)/%%/:
 	mkdir -p $@
 
+# Set debug mode and make
+debug: _debug all
+
+# Clean, set debug mode and make
+rebug: fclean debug
+
 # Clean obj files
 clean:
 	rm -f $(O_FILES)
@@ -99,13 +105,15 @@ re: fclean all
 $(DEPEND): Makefile
 	makemake || printf "\\033[31mCannot remake $(DEPEND)\\033[0m\\n"
 
+# Set debug flags
+_debug:
+	$(eval FLAGS := $(DEBUG_FLAGS))
+
 .SILENT:
-.PHONY: all $(LIBS) clean fclean re
+.PHONY: all $(LIBS) clean fclean re debug rebug _debug
 """
 
-DEPEND_RULE = """
-%(o_file)s: %(includes)s | %(o_dir)s
-"""
+DEPEND_RULE = "%(o_file)s: %(includes)s | %(o_dir)s\n"
 
 import re, os
 from os import path
@@ -247,14 +255,15 @@ def generate_depend(name, dirs, o_dir):
 	obj_files = get_obj_files(source_files, include_files, o_dir)
 	with open(name, 'w') as f:
 		f.write("O_FILES := \\\n")
-		for obj in obj_files:
-			f.write("	%s \\\n" % obj)
+		obj_file_names = sorted(obj_files.keys())
+		for obj_name in obj_file_names:
+			f.write("	%s \\\n" % obj_name)
 		f.write("\n")
-		for obj in obj_files:
+		for obj_name in obj_file_names:
 			f.write(DEPEND_RULE % {
-				'o_file': obj,
-				'includes': " ".join(obj_files[obj]),
-				'o_dir': path.dirname(obj)
+				'o_file': obj_name,
+				'includes': " ".join(obj_files[obj_name]),
+				'o_dir': path.dirname(obj_name)
 			})
 
 #
