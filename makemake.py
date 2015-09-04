@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/08/24 01:12:19 by juloo            ###   ########.fr        #
+#    Updated: 2015/09/04 18:32:35 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -86,7 +86,7 @@ $(LIBS):
 	make -C $@
 
 # Create obj directories
-$(O_DIR)/%%/:
+$(O_DIR)/%%:
 	mkdir -p $@
 
 # Set debug mode and make
