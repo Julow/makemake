@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/09/04 18:32:35 by juloo            ###   ########.fr        #
+#    Updated: 2015/09/05 20:07:23 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -86,7 +86,7 @@ $(LIBS):
 	make -C $@
 
 # Create obj directories
-$(O_DIR)/%%:
+$(O_DIR)/%%/:
 	mkdir -p $@
 
 # Set debug mode and make
@@ -283,7 +283,7 @@ def generate_depend(name, dirs, o_dir):
 			rule_name = DEPEND_RULE % obj_name
 			f.write(rule_name)
 			offset = print_file_list(f, obj_files[obj_name], len(rule_name), "\t", " ", " \\")
-			o_dir_dep = "| %s" % path.dirname(obj_name)
+			o_dir_dep = "| %s/" % path.dirname(obj_name)
 			if (len(o_dir_dep) + 1 + offset) > MAX_LINE_LENGTH:
 				f.write(" \\\n\t%s\n" % o_dir_dep)
 			else:
