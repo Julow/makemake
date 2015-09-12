@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/09/05 20:07:23 by juloo            ###   ########.fr        #
+#    Updated: 2015/09/12 14:19:07 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,6 +32,8 @@ EXCLUDE_DIRS = [".git"]
 
 O_FILES_VAR = "O_FILES :=\t"
 DEPEND_RULE = "%s:"
+
+LIBS_DEPEND_VAR = "LIBS_DEPEND := "
 
 DEFAULT_MAKEFILE = """#
 
@@ -63,13 +65,13 @@ DEPEND := depend.mk
 MODULE_RULES := $(addsuffix /.git,$(MODULES))
 
 # Default rule (need to be before any include)
-all: $(MODULE_RULES) $(LIBS) $(NAME)
+all: $(MODULE_RULES) libs $(NAME)
 
 # Include $(O_FILES) and dependencies
 -include $(DEPEND)
 
 # Linking
-$(NAME): $(O_FILES)
+$(NAME): $(LIBS_DEPEND) $(O_FILES)
 	clang $(FLAGS) -o $@ $(O_FILES) $(LINKS) && printf '\\033[32m$@\\033[0m\\n'
 
 # Compiling
@@ -80,10 +82,6 @@ $(O_DIR)/%%.o:
 $(MODULE_RULES):
 	git submodule init $(@:.git=)
 	git submodule update $(@:.git=)
-
-# Call sub Makefiles
-$(LIBS):
-	make -C $@
 
 # Create obj directories
 $(O_DIR)/%%/:
@@ -125,10 +123,8 @@ source_include_reg = re.compile('^\s*#\s*include\s*"([^"]+)"\s*$')
 makefile_var_reg = re.compile('^\s*([a-zA-Z0-9_]+)\s*[:\?\+]?=\s*(.*)$')
 module_path_reg = re.compile('^\s*path\s*=\s*(.+)$')
 
-#
 # Return all files in 'dir_name' recursively
 # (except dir starting with '.')
-#
 def get_file_tree(dir_name):
 	tree = []
 	for curr_dir, dirs, files in os.walk(dir_name):
@@ -247,11 +243,28 @@ def get_obj_files(source_files, include_files, o_dir):
 		obj_files[obj] = get_includes(source, include_files)
 	return obj_files
 
+# Return a tuple (['libs depends'], ['libs'])
+def get_libs_depend(libs_def):
+	libs = []
+	libs_depend = []
+	for d in libs_def:
+		libs.append(d)
+		try:
+			with open("%s/Makefile" % d) as f:
+				for line in f:
+					m = makefile_var_reg.match(line)
+					if m != None and m.group(1) == "NAME":
+						libs_depend.append("%s/%s" % (d, m.group(2)))
+						break
+		except:
+			pass
+	return (libs_depend, libs)
+
 # Print a list of file respecting MAX_LINE_LENGTH
 def print_file_list(out, files, offset, indent, sep, endl):
 	indent_len = len(indent.expandtabs(4))
-	sep_len = len(sep.expandtabs(4))
-	endl_len = len(endl.expandtabs(4))
+	sep_len = len(sep)
+	endl_len = len(endl)
 	for f in files:
 		if (len(f) + offset + sep_len + endl_len) > MAX_LINE_LENGTH and offset != indent_len:
 			offset = indent_len
@@ -266,7 +279,7 @@ def print_file_list(out, files, offset, indent, sep, endl):
 	return offset
 
 #
-def generate_depend(name, dirs, o_dir):
+def generate_depend(name, dirs, o_dir, libs_def):
 	source_files = []
 	include_files = {}
 	for d in dirs:
@@ -274,11 +287,21 @@ def generate_depend(name, dirs, o_dir):
 		source_files += get_source_files(f_tree)
 		include_files.update(get_include_files(f_tree, d))
 	obj_files = get_obj_files(source_files, include_files, o_dir)
+	libs_depend, libs = get_libs_depend(libs_def)
 	with open(name, 'w') as f:
+		# obj files
 		f.write(O_FILES_VAR)
 		obj_file_names = sorted(obj_files.keys())
 		print_file_list(f, obj_file_names, len(O_FILES_VAR), "\t\t\t", " ", " \\")
 		f.write("\n\n")
+		# libs depend and libs rule
+		f.write(LIBS_DEPEND_VAR)
+		print_file_list(f, libs_depend, len(LIBS_DEPEND_VAR), "\t\t\t\t", " ", " \\")
+		f.write("\n\nlibs:\n")
+		for l in libs:
+			f.write("\tmake -C %s\n" % l)
+		f.write(".PHONY: libs\n\n")
+		# obj depends
 		for obj_name in obj_file_names:
 			rule_name = DEPEND_RULE % obj_name
 			f.write(rule_name)
@@ -323,7 +346,8 @@ for var in ['DEPEND', 'DIRS', 'O_DIR']:
 
 # generate $(DEPEND)
 try:
-	generate_depend(config['DEPEND'], config['DIRS'].split(), config['O_DIR'])
+	libs = config['LIBS'].split() if 'LIBS' in config else []
+	generate_depend(config['DEPEND'], config['DIRS'].split(), config['O_DIR'], libs)
 except Exception as e:
 	print "Error Cannot generate %s: %s" % (config['DEPEND'], e)
 	exit(1)
