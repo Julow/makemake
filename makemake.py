@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/09/12 14:19:07 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/09/22 13:02:51 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -214,7 +214,7 @@ def check_makefile(name):
 def get_source_files(file_tree):
 	source_files = []
 	for f in file_tree:
-		if f.endswith('.c'): # TODO
+		if f.endswith('.cpp'): # TODO
 			source_files.append(f)
 	return source_files
 
@@ -239,7 +239,7 @@ def get_includes(source, include_files):
 def get_obj_files(source_files, include_files, o_dir):
 	obj_files = {}
 	for source in source_files:
-		obj = path.join(o_dir, source.replace('.c', '.o')) # TODO
+		obj = path.join(o_dir, source.replace('.cpp', '.o')) # TODO
 		obj_files[obj] = get_includes(source, include_files)
 	return obj_files
 
