@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/09/22 13:02:51 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/09/22 21:36:52 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,6 +29,11 @@ MAX_LINE_LENGTH = 80
 SUB_MAKEFILE_NAMES = ["Makefile"]
 
 EXCLUDE_DIRS = [".git"]
+
+EXTENSIONS = [
+	{"ext": ".c",	"obj_ext": ".o"},
+	{"ext": ".cpp",	"obj_ext": ".o"}
+]
 
 O_FILES_VAR = "O_FILES :=\t"
 DEPEND_RULE = "%s:"
@@ -210,11 +215,25 @@ def check_makefile(name):
 # Generate $(DEPEND) file
 #
 
+# Return true if f ends with a supported extension
+def is_supported_extension(f):
+	for e in EXTENSIONS:
+		if f.endswith(e["ext"]):
+			return True
+	return False
+
+# Return obj of a file replacing it's extension
+def get_obj_ext(f):
+	for e in EXTENSIONS:
+		if f.endswith(e["ext"]):
+			return f[:-len(e["ext"])] + e["obj_ext"]
+	return None
+
 # Filter file_tree and return a list of source files
 def get_source_files(file_tree):
 	source_files = []
 	for f in file_tree:
-		if f.endswith('.cpp'): # TODO
+		if is_supported_extension(f):
 			source_files.append(f)
 	return source_files
 
@@ -239,7 +258,7 @@ def get_includes(source, include_files):
 def get_obj_files(source_files, include_files, o_dir):
 	obj_files = {}
 	for source in source_files:
-		obj = path.join(o_dir, source.replace('.cpp', '.o')) # TODO
+		obj = path.join(o_dir, get_obj_ext(source))
 		obj_files[obj] = get_includes(source, include_files)
 	return obj_files
 
