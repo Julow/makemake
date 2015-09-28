@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/09/22 21:36:52 by juloo            ###   ########.fr        #
+#    Updated: 2015/09/29 01:41:11 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -251,7 +251,9 @@ def get_includes(source, include_files):
 		for line in f:
 			m = source_include_reg.match(line)
 			if m != None and m.group(1) in include_files:
-				includes += get_includes(include_files[m.group(1)], include_files)
+				for i in sorted(get_includes(include_files[m.group(1)], include_files)):
+					if not i in includes:
+						includes.append(i)
 	return includes
 
 # Return a map {'obj name': ['includes']} of objects files with their includes
