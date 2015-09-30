@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/09/30 11:39:04 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/09/30 11:45:54 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -69,11 +69,11 @@ JOBS := 4
 COLUMN_OUTPUT := 1
 
 ifeq ($(COLUMN_OUTPUT),0)
-	PRINT_OK = printf '\033[32m$<\033[0m\n'
-	PRINT_LINK = printf '\033[32m$@\033[0m\n'
+	PRINT_OK = printf '\\033[32m$<\\033[0m\n'
+	PRINT_LINK = printf '\\033[32m$@\\033[0m\n'
 else
 	PRINT_OK = echo $(patsubst $(firstword $(DIRS))/%%,%%,$<) >> $(PRINT_FILE)
-	PRINT_LINK = printf '\n\033[32m$@\033[0m\n'
+	PRINT_LINK = printf '\n\\033[32m$@\\033[0m\n'
 endif
 
 # Objects directory
@@ -92,32 +92,32 @@ all: $(MODULE_RULES) libs
 ifeq ($(COLUMN_OUTPUT),0)
 	make -j$(JOBS) $(NAME)
 else
-	MAX_LEN=1;															\
-	for o in $(patsubst $(O_DIR)/$(firstword $(DIRS))/%%,%%,$(O_FILES));	\
-	do																	\
-		if [[ $${#o} -gt $$MAX_LEN ]];									\
-		then															\
-			MAX_LEN=$${#o};												\
-		fi;																\
-	done;																\
-	PER_LINE=$$((`tput cols` / $$(($$MAX_LEN + 2))));					\
-	CURR=0;																\
-	rm -f $(PRINT_FILE);												\
-	touch $(PRINT_FILE);												\
-	tail -n0 -f $(PRINT_FILE) | while read l;							\
-	do																	\
-		if [[ $$CURR -ge $$PER_LINE ]];									\
-		then															\
-			CURR=0;														\
-			echo;														\
-		fi;																\
-		CURR=$$(($$CURR + 1));											\
-		printf '\033[32m%%-*s\033[0m  ' $$MAX_LEN "$$l";				\
-	done &																\
-	make -j$(JOBS) $(NAME);												\
-	STATUS=$$?															\
-	kill -9 `jobs -p`;													\
-	rm -f $(PRINT_FILE)													\
+	MAX_LEN=1;															\\
+	for o in $(patsubst $(O_DIR)/$(firstword $(DIRS))/%%,%%,$(O_FILES));	\\
+	do																	\\
+		if [[ $${#o} -gt $$MAX_LEN ]];									\\
+		then															\\
+			MAX_LEN=$${#o};												\\
+		fi;																\\
+	done;																\\
+	PER_LINE=$$((`tput cols` / $$(($$MAX_LEN + 2))));					\\
+	CURR=0;																\\
+	rm -f $(PRINT_FILE);												\\
+	touch $(PRINT_FILE);												\\
+	tail -n0 -f $(PRINT_FILE) | while read l;							\\
+	do																	\\
+		if [[ $$CURR -ge $$PER_LINE ]];									\\
+		then															\\
+			CURR=0;														\\
+			echo;														\\
+		fi;																\\
+		CURR=$$(($$CURR + 1));											\\
+		printf '\\033[32m%%-*s\\033[0m  ' $$MAX_LEN "$$l";				\\
+	done &																\\
+	make -j$(JOBS) $(NAME);												\\
+	STATUS=$$?															\\
+	kill -9 `jobs -p`;													\\
+	rm -f $(PRINT_FILE)													\\
 	exit $$STATUS
 endif
 
