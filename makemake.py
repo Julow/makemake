@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/09/30 11:09:46 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/09/30 11:39:04 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -112,7 +112,7 @@ else
 			echo;														\
 		fi;																\
 		CURR=$$(($$CURR + 1));											\
-		printf '\033[32m%-*s\033[0m  ' $$MAX_LEN "$$l";					\
+		printf '\033[32m%%-*s\033[0m  ' $$MAX_LEN "$$l";				\
 	done &																\
 	make -j$(JOBS) $(NAME);												\
 	STATUS=$$?															\
