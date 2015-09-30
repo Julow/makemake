@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/09/30 11:45:54 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/09/30 11:48:52 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -69,11 +69,11 @@ JOBS := 4
 COLUMN_OUTPUT := 1
 
 ifeq ($(COLUMN_OUTPUT),0)
-	PRINT_OK = printf '\\033[32m$<\\033[0m\n'
-	PRINT_LINK = printf '\\033[32m$@\\033[0m\n'
+	PRINT_OK = printf '\\033[32m$<\\033[0m\\n'
+	PRINT_LINK = printf '\\033[32m$@\\033[0m\\n'
 else
 	PRINT_OK = echo $(patsubst $(firstword $(DIRS))/%%,%%,$<) >> $(PRINT_FILE)
-	PRINT_LINK = printf '\n\\033[32m$@\\033[0m\n'
+	PRINT_LINK = printf '\\n\\033[32m$@\\033[0m\\n'
 endif
 
 # Objects directory
