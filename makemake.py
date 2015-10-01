@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/10/01 10:46:55 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/01 10:55:33 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -182,23 +182,6 @@ module_path_reg = re.compile('^\s*path\s*=\s*(.+)$')
 # Libs
 #
 
-# Return a tuple (['libs depends'], ['libs'])
-def get_libs_depend(libs_def):
-	libs = []
-	libs_depend = []
-	for d in libs_def:
-		libs.append(d)
-		try:
-			with open("%s/Makefile" % d) as f:
-				for line in f:
-					m = makefile_var_reg.match(line)
-					if m != None and m.group(1) == "NAME":
-						libs_depend.append("%s/%s" % (d, m.group(2)))
-						break
-		except:
-			pass
-	return (libs_depend, libs)
-
 class Lib():
 
 	name = ""
@@ -214,7 +197,7 @@ class Lib():
 				for line in f:
 					m = makefile_var_reg.match(line)
 					if m != None and m.group(1) == "NAME":
-						return "%s/%s" % (d, m.group(2))
+						return "%s/%s" % (self.name, m.group(2))
 		except:
 			pass
 		return None
@@ -393,7 +376,7 @@ def generate_depend(name, dirs, o_dir, libs):
 	libs_depend = []
 	for l in libs:
 		d = l.get_depend()
-		if d is not None:
+		if d != None:
 			libs_depend.append(d)
 	with open(name, 'w') as f:
 		# obj files
