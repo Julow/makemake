@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/09/30 11:48:52 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/01 10:46:55 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,6 +34,8 @@ EXTENSIONS = [
 	{"ext": ".c",	"obj_ext": ".o"},
 	{"ext": ".cpp",	"obj_ext": ".o"}
 ]
+
+LIB_DFAULT_CMD = "make -C ?name?"
 
 O_FILES_VAR = "O_FILES :=\t"
 DEPEND_RULE = "%s:"
@@ -112,7 +114,7 @@ else
 			echo;														\\
 		fi;																\\
 		CURR=$$(($$CURR + 1));											\\
-		printf '\\033[32m%%-*s\\033[0m  ' $$MAX_LEN "$$l";				\\
+		printf '\\033[32m%%-*s\\033[0m  ' $$MAX_LEN "$$l";					\\
 	done &																\\
 	make -j$(JOBS) $(NAME);												\\
 	STATUS=$$?															\\
@@ -164,15 +166,66 @@ _debug:
 	$(eval FLAGS := $(DEBUG_FLAGS))
 
 .SILENT:
-.PHONY: all $(LIBS) clean fclean re debug rebug _debug
+.PHONY: all clean fclean re debug rebug _debug
 """
 
 import re, os
 from os import path
 
+libs_def_reg = re.compile('\s*([a-zA-Z0-9_-]+)\s*(?:\(([^\)]+)\))?')
+
 source_include_reg = re.compile('^\s*#\s*include\s*"([^"]+)"\s*$')
 makefile_var_reg = re.compile('^\s*([a-zA-Z0-9_]+)\s*[:\?\+]?=\s*(.*)$')
 module_path_reg = re.compile('^\s*path\s*=\s*(.+)$')
+
+#
+# Libs
+#
+
+# Return a tuple (['libs depends'], ['libs'])
+def get_libs_depend(libs_def):
+	libs = []
+	libs_depend = []
+	for d in libs_def:
+		libs.append(d)
+		try:
+			with open("%s/Makefile" % d) as f:
+				for line in f:
+					m = makefile_var_reg.match(line)
+					if m != None and m.group(1) == "NAME":
+						libs_depend.append("%s/%s" % (d, m.group(2)))
+						break
+		except:
+			pass
+	return (libs_depend, libs)
+
+class Lib():
+
+	name = ""
+	cmd = ""
+
+	def __init__(self, name, cmd):
+		self.name = name
+		self.cmd = (cmd if cmd is not None else LIB_DFAULT_CMD).replace("?name?", name)
+
+	def get_depend(self):
+		try:
+			with open("%s/Makefile" % self.name) as f:
+				for line in f:
+					m = makefile_var_reg.match(line)
+					if m != None and m.group(1) == "NAME":
+						return "%s/%s" % (d, m.group(2))
+		except:
+			pass
+		return None
+
+# Parse $(LIBS), return [Lib()]
+def parse_libs_def(libs_def):
+	libs = []
+	for m in libs_def_reg.finditer(libs_def):
+		libs.append(Lib(m.group(1), m.group(2)))
+	return libs
+
 
 # Return all files in 'dir_name' recursively
 # (except dir starting with '.')
@@ -310,23 +363,6 @@ def get_obj_files(source_files, include_files, o_dir):
 		obj_files[obj] = get_includes(source, include_files)
 	return obj_files
 
-# Return a tuple (['libs depends'], ['libs'])
-def get_libs_depend(libs_def):
-	libs = []
-	libs_depend = []
-	for d in libs_def:
-		libs.append(d)
-		try:
-			with open("%s/Makefile" % d) as f:
-				for line in f:
-					m = makefile_var_reg.match(line)
-					if m != None and m.group(1) == "NAME":
-						libs_depend.append("%s/%s" % (d, m.group(2)))
-						break
-		except:
-			pass
-	return (libs_depend, libs)
-
 # Print a list of file respecting MAX_LINE_LENGTH
 def print_file_list(out, files, offset, indent, sep, endl):
 	indent_len = len(indent.expandtabs(4))
@@ -346,7 +382,7 @@ def print_file_list(out, files, offset, indent, sep, endl):
 	return offset
 
 #
-def generate_depend(name, dirs, o_dir, libs_def):
+def generate_depend(name, dirs, o_dir, libs):
 	source_files = []
 	include_files = {}
 	for d in dirs:
@@ -354,7 +390,11 @@ def generate_depend(name, dirs, o_dir, libs_def):
 		source_files += get_source_files(f_tree)
 		include_files.update(get_include_files(f_tree, d))
 	obj_files = get_obj_files(source_files, include_files, o_dir)
-	libs_depend, libs = get_libs_depend(libs_def)
+	libs_depend = []
+	for l in libs:
+		d = l.get_depend()
+		if d is not None:
+			libs_depend.append(d)
 	with open(name, 'w') as f:
 		# obj files
 		f.write(O_FILES_VAR)
@@ -366,7 +406,7 @@ def generate_depend(name, dirs, o_dir, libs_def):
 		print_file_list(f, libs_depend, len(LIBS_DEPEND_VAR), "\t\t\t\t", " ", " \\")
 		f.write("\n\nlibs:\n")
 		for l in libs:
-			f.write("\tmake -C %s\n" % l)
+			f.write("\t%s\n" % l.cmd)
 		f.write(".PHONY: libs\n\n")
 		# obj depends
 		for obj_name in obj_file_names:
@@ -413,7 +453,7 @@ for var in ['DEPEND', 'DIRS', 'O_DIR']:
 
 # generate $(DEPEND)
 try:
-	libs = config['LIBS'].split() if 'LIBS' in config else []
+	libs = parse_libs_def(config['LIBS']) if 'LIBS' in config else []
 	generate_depend(config['DEPEND'], config['DIRS'].split(), config['O_DIR'], libs)
 except Exception as e:
 	print "Error Cannot generate %s: %s" % (config['DEPEND'], e)
