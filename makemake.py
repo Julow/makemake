@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/10/01 10:55:33 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/02 21:55:10 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,49 +45,64 @@ LIBS_DEPEND_VAR = "LIBS_DEPEND := "
 DEFAULT_MAKEFILE = """#
 
 # Executable name
-NAME := %(name)s
+NAME		:= %(name)s
 
 # Project directories
-DIRS := %(dirs)s
+DIRS		:= %(dirs)s
 
 # Git submodule to init
-MODULES := %(modules)s
+MODULES		:= %(modules)s
 # Makefiles to call
-LIBS := %(libs)s
+LIBS		:= %(libs)s
 
-# Compilation and linking flags
-FLAGS := -Wall -Wextra -O2
-# Same but used in debug mode
-DEBUG_FLAGS := -Wall -Wextra -g
-# Compilation flags
-HEADS := $(addprefix -I,$(DIRS))
-# Linking flags
-LINKS :=
+# Base flags
+BASE_FLAGS	= -Wall -Wextra -O2
+HEAD_FLAGS	= $(addprefix -I,$(DIRS))
+
+# Compilation flags (per language)
+C_FLAGS		= $(HEAD_FLAGS) $(BASE_FLAGS)
+CPP_FLAGS	= $(HEAD_FLAGS) $(BASE_FLAGS) -std=c++14
+
+LINK_FLAGS	= $(BASE_FLAGS)
+
+export C_FLAGS
+export CPP_FLAGS
+export LINK_FLAGS
+
+# Extra flags used in debug mode
+ifeq ($(DEBUG_MODE),1)
+	BASE_FLAGS	+= -g
+	C_FLAGS		+=
+	CPP_FLAGS	+=
+endif
+
+DEBUG_MODE	?= 0
+export DEBUG_MODE
 
 # Jobs
-JOBS := 4
+JOBS		:= 4
 
 # Column output
-COLUMN_OUTPUT := 1
+COLUMN_OUTPUT	:= 1
 
 ifeq ($(COLUMN_OUTPUT),0)
-	PRINT_OK = printf '\\033[32m$<\\033[0m\\n'
-	PRINT_LINK = printf '\\033[32m$@\\033[0m\\n'
+	PRINT_OK	= printf '\\033[32m$<\\033[0m\\n'
+	PRINT_LINK	= printf '\\033[32m$@\\033[0m\\n'
 else
-	PRINT_OK = echo $(patsubst $(firstword $(DIRS))/%%,%%,$<) >> $(PRINT_FILE)
-	PRINT_LINK = printf '\\n\\033[32m$@\\033[0m\\n'
+	PRINT_OK	= echo $(patsubst $(firstword $(DIRS))/%%,%%,$<) >> $(PRINT_FILE)
+	PRINT_LINK	= printf '\\n\\033[32m$@\\033[0m\\n'
 endif
 
 # Objects directory
-O_DIR := o
+O_DIR		:= o
 
 # Depend file name
-DEPEND := depend.mk
+DEPEND		:= depend.mk
 
 # tmp
-MODULE_RULES := $(addsuffix /.git,$(MODULES))
-PRINT_FILE := .tmp_print
-SHELL := /bin/bash
+MODULE_RULES	:= $(addsuffix /.git,$(MODULES))
+PRINT_FILE		:= .tmp_print
+SHELL			:= /bin/bash
 
 # Default rule (need to be before any include)
 all: $(MODULE_RULES) libs
@@ -117,9 +132,9 @@ else
 		printf '\\033[32m%%-*s\\033[0m  ' $$MAX_LEN "$$l";					\\
 	done &																\\
 	make -j$(JOBS) $(NAME);												\\
-	STATUS=$$?															\\
+	STATUS=$$?;															\\
 	kill -9 `jobs -p`;													\\
-	rm -f $(PRINT_FILE)													\\
+	rm -f $(PRINT_FILE);												\\
 	exit $$STATUS
 endif
 
@@ -128,11 +143,13 @@ endif
 
 # Linking
 $(NAME): $(LIBS_DEPEND) $(O_FILES)
-	clang $(FLAGS) -o $@ $(O_FILES) $(LINKS) && $(PRINT_LINK)
+	clang -o $@ $(O_FILES) $(LINK_FLAGS) && $(PRINT_LINK)
 
 # Compiling
-$(O_DIR)/%%.o:
-	clang $(FLAGS) $(HEADS) -c $< -o $@ && $(PRINT_OK)
+$(O_DIR)/%%.o: %%.c
+	clang $(C_FLAGS) -c $< -o $@ && $(PRINT_OK)
+$(O_DIR)/%%.o: %%.cpp
+	clang++ $(CPP_FLAGS) -c $< -o $@ && $(PRINT_OK)
 
 # Init submodules
 $(MODULE_RULES):
@@ -163,7 +180,7 @@ re: fclean all
 
 # Set debug flags
 _debug:
-	$(eval FLAGS := $(DEBUG_FLAGS))
+	$(eval DEBUG_MODE = 1)
 
 .SILENT:
 .PHONY: all clean fclean re debug rebug _debug
