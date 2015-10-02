@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/10/02 21:55:10 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/02 22:10:57 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,6 +41,7 @@ O_FILES_VAR = "O_FILES :=\t"
 DEPEND_RULE = "%s:"
 
 LIBS_DEPEND_VAR = "LIBS_DEPEND := "
+MAX_SRC_LEN_VAR = "MAX_SOURCE_LEN := "
 
 DEFAULT_MAKEFILE = """#
 
@@ -56,7 +57,7 @@ MODULES		:= %(modules)s
 LIBS		:= %(libs)s
 
 # Base flags
-BASE_FLAGS	= -Wall -Wextra -O2
+BASE_FLAGS	= -Wall -Wextra
 HEAD_FLAGS	= $(addprefix -I,$(DIRS))
 
 # Compilation flags (per language)
@@ -65,13 +66,14 @@ CPP_FLAGS	= $(HEAD_FLAGS) $(BASE_FLAGS) -std=c++14
 
 LINK_FLAGS	= $(BASE_FLAGS)
 
-export C_FLAGS
-export CPP_FLAGS
-export LINK_FLAGS
-
-# Extra flags used in debug mode
 ifeq ($(DEBUG_MODE),1)
+	# Extra flags used in debug mode
 	BASE_FLAGS	+= -g
+	C_FLAGS		+=
+	CPP_FLAGS	+=
+else
+	# Extra flags used when not in debug mode
+	BASE_FLAGS	+= -O2
 	C_FLAGS		+=
 	CPP_FLAGS	+=
 endif
@@ -109,15 +111,7 @@ all: $(MODULE_RULES) libs
 ifeq ($(COLUMN_OUTPUT),0)
 	make -j$(JOBS) $(NAME)
 else
-	MAX_LEN=1;															\\
-	for o in $(patsubst $(O_DIR)/$(firstword $(DIRS))/%%,%%,$(O_FILES));	\\
-	do																	\\
-		if [[ $${#o} -gt $$MAX_LEN ]];									\\
-		then															\\
-			MAX_LEN=$${#o};												\\
-		fi;																\\
-	done;																\\
-	PER_LINE=$$((`tput cols` / $$(($$MAX_LEN + 2))));					\\
+	PER_LINE=$$((`tput cols` / $$(($(MAX_SOURCE_LEN) + 2))));			\\
 	CURR=0;																\\
 	rm -f $(PRINT_FILE);												\\
 	touch $(PRINT_FILE);												\\
@@ -129,7 +123,7 @@ else
 			echo;														\\
 		fi;																\\
 		CURR=$$(($$CURR + 1));											\\
-		printf '\\033[32m%%-*s\\033[0m  ' $$MAX_LEN "$$l";					\\
+		printf '\\033[32m%%-*s\\033[0m  ' "$(MAX_SOURCE_LEN)" "$$l";		\\
 	done &																\\
 	make -j$(JOBS) $(NAME);												\\
 	STATUS=$$?;															\\
@@ -408,6 +402,15 @@ def generate_depend(name, dirs, o_dir, libs):
 		for l in libs:
 			f.write("\t%s\n" % l.cmd)
 		f.write(".PHONY: libs\n\n")
+		# MAX_SRC_LEN_VAR
+		f.write("\n\n")
+		f.write(MAX_SRC_LEN_VAR)
+		max_src_len = 0
+		for o in obj_files:
+			if len(obj_files[o]) > 0 and len(obj_files[o][0]) > max_src_len:
+				max_src_len = len(obj_files[o][0])
+		f.write(str(max_src_len))
+		f.write("\n")
 		# obj depends
 		for obj_name in obj_file_names:
 			rule_name = DEPEND_RULE % obj_name
