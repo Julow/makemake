@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/10/15 13:09:33 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/15 17:53:18 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -92,3 +92,13 @@ class ModuleDef():
 			for r in recipes:
 				s += "%28s%s\n" % (' ', r)
 		return s
+
+#
+# Search a module by name in a module list
+#
+
+def get_module(module_list, name):
+	for m in module_list:
+		if m.module_name == name:
+			return m
+	return None

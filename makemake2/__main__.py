@@ -6,13 +6,14 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/15 16:34:07 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/15 18:22:17 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 from sys import argv
 import module_searcher
-import source_finder
+import dependency_finder
+import module_def
 import config
 import os
 
@@ -25,13 +26,11 @@ import os
 #  help					# Print help
 #
 
-class ArgError(Exception):
-
-	def __init__(self, err):
-		self.err = err
-
-	def __str__(self):
-		return self.err
+#
+# TODO:
+# Dependency generation
+# depend.mk generation
+#
 
 def list_command(args):
 	modules = module_searcher.all()
@@ -54,30 +53,55 @@ def check_command(args):
 		print "%d modules - OK" % len(modules)
 
 HELP = {
-	"list": "Search and list all modules",
-	"check": "Search modules and check for error",
-	"help": "Show help about a command"
+	"list": ("Search and list all modules", """
+		Search and list all modules with their base directory
+		Take no argument
+"""),
+	"check": ("Search modules and check for error", """
+		Search modules and check for error
+		Take no argument
+"""),
+	"dep": ("Show dependencies for each source of a module", """
+		Take module names as argument
+"""),
+	"info": ("Show info about modules", """
+		Take module names as argument
+		If called without argument, show info about each modules
+"""),
+	"help": ("Show help about a command", """
+		Take command names as argument and show their helps
+""")
 }
 
 def help_command(args):
 	if len(args) == 0:
 		print "Commands:"
 		for cmd in HELP:
-			print "\t%-12s %s" % (cmd, HELP[cmd])
+			print "\t%-12s %s" % (cmd, HELP[cmd][0])
 	else:
 		for arg in args:
 			if arg in HELP:
-				print "\t%-12s %s" % (arg, HELP[arg])
+				print "\t%-12s %s" % (arg, HELP[arg][0])
+				if HELP[arg][1] != None:
+					print HELP[arg][1]
 			else:
 				print "No help for '%s'" % arg
 
-def def_command(args):
-	absolute = True if len(args) > 0 and args[0] == "abs" else False
+def info_command(args):
 	modules = module_searcher.all()
+	if len(args) > 0:
+		for m in args:
+			if module_def.get_module(modules, m) == None:
+				raise config.BaseError("Unknow module '%s'" % m) # TODO: exception
+		arg_modules = []
+		for m in modules:
+			if m.module_name in args:
+				arg_modules.append(m)
+		modules = arg_modules
 	for m in modules:
-		print "module %s: %s" % (m.module_name, m.base_dir if absolute else os.path.relpath(m.base_dir))
+		print "module %s: %s" % (m.module_name, os.path.relpath(m.base_dir))
 		for i in m.include_dirs:
-			print "\tinclude %s" % (i if absolute else os.path.relpath(m.base_dir))
+			print "\tinclude %s" % os.path.relpath(m.base_dir)
 		for r in m.public_required:
 			print "\tpublic require %s" % r
 		for r in m.private_required:
@@ -96,55 +120,41 @@ def def_command(args):
 				print "\trecipe %s" % r
 		print ""
 
-# tmp START
-
-def get_module(module_list, name):
-	for m in module_list:
-		if m.module_name == name:
-			return m
-	return None
-
-def module_get_dirs(module_list, module, private = True):
-	if module == None:
-		print "INCLUDE LOOP"
-		return []
-	dirs = [module.base_dir] + module.include_dirs
-	module_list = list(module_list)
-	module_list.remove(module)
-	for r in module.public_required:
-		for d in module_get_dirs(module_list, get_module(module_list, r), False):
-			if not d in dirs:
-				dirs.append(d)
-	if private:
-		for r in module.private_required:
-			for d in module_get_dirs(module_list, get_module(module_list, r), False):
-				if not d in dirs:
-					dirs.append(d)
-	return dirs
-
-# tmp END
+def dep_command(args):
+	if len(args) == 0:
+		raise config.BaseError("Not enougth argument") # TODO: exception
+	modules = module_searcher.load()
+	source_map = dependency_finder.track(modules)
+	arg_modules = []
+	for m in args:
+		tmp = module_def.get_module(modules, m)
+		if tmp in source_map:
+			arg_modules.append(tmp)
+		else:
+			raise config.BaseError("Unknow module '%s'" % m) # TODO: exception
+	for m in arg_modules:
+		for src in source_map[m]:
+			includes = []
+			for i in source_map[m][src]:
+				includes.append(os.path.relpath(i))
+			print "%s: %s" % (os.path.basename(src), " ".join(includes))
 
 def debug_command(args):
-	modules = module_searcher.load()
-	if len(modules) == 0:
-		print "No module found"
-	else:
-		for m in modules:
-			if not m.auto_enabled:
-				continue
-			print "MODULE %s:" % m.module_name
-			sources = source_finder.track(m.base_dir, module_get_dirs(modules, m))
-			for src in sources:
-				includes = []
-				for i in sources[src]:
-					includes.append(os.path.relpath(i))
-				print "\t%20s: %s" % (os.path.basename(src), ", ".join(includes))
+	source_map = dependency_finder.track(module_searcher.load())
+	for m in source_map:
+		print "MODULE %s:" % m.module_name
+		for src in source_map[m]:
+			includes = []
+			for i in source_map[m][src]:
+				includes.append(os.path.relpath(i))
+			print "\t%20s: %s" % (os.path.basename(src), ", ".join(includes))
 
 COMMANDS = {
 	"list": list_command,
 	"check": check_command,
 	"help": help_command,
-	"def": def_command,
+	"dep": dep_command,
+	"info": info_command,
 	"debug": debug_command,
 }
 
@@ -152,9 +162,12 @@ def main():
 	try:
 		if len(argv) > 1:
 			if argv[1] in COMMANDS:
-				COMMANDS[argv[1]](argv[2:])
+				try:
+					COMMANDS[argv[1]](argv[2:])
+				except config.BaseError as e:
+					raise config.BaseError("%s: %s" % (argv[1], str(e)))
 			else:
-				raise ArgError("Unknow command '%s'" % command)
+				raise config.BaseError("Unknow command '%s'" % argv[1]) # TODO: exception
 		else:
 			print "%s: Available commands: %s" % (argv[0], ", ".join(sorted(COMMANDS.keys())))
 			print "Type '%s help' for help" % argv[0]
