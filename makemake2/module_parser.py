@@ -6,12 +6,13 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/15 10:11:33 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/15 13:09:59 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
 from module_def import ModuleDef
+import config
 
 #
 # module file syntax
@@ -21,9 +22,9 @@ from module_def import ModuleDef
 #
 # There can be several module declaration per file
 #
-# module module_name: module_dir	# Declare a module
+# module module_name: base_dir		# Declare a module
 #
-#										module_dir is the base dir of the module
+#										base_dir is the base dir of the module
 #										(default: current dir)
 #
 #									# Everything is optionnal
@@ -65,13 +66,10 @@ MODULE_INSTRUCTIONS = {
 	"target":	(1, -1,	lambda m, w, v: ModuleDef.target(m, " ".join(w)))
 }
 
-class ParserError(Exception):
+class ParserError(config.BaseError):
 
 	def __init__(self, err):
-		self.err = err
-
-	def __str__(self):
-		return self.err
+		config.BaseError(self, err)
 
 #
 # Parse a module file
@@ -96,7 +94,7 @@ def parse(file_name):
 				if len(line) == 0:
 					continue
 				words = line.split()
-				visiblity = None
+				visiblity = config.DEFAULT_VISIBILITY
 				if words[0] in ["public", "private"]:
 					visiblity = words[0]
 					words = words[1:]

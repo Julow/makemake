@@ -6,19 +6,17 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/15 10:10:31 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/15 13:09:44 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
+import config
 
-class CheckError(Exception):
+class CheckError(config.BaseError):
 
 	def __init__(self, err):
-		self.err = err
-
-	def __str__(self):
-		return self.err
+		config.BaseError(self, err)
 
 #
 # Check for errors
@@ -32,15 +30,15 @@ def check(modules):
 		if m.module_name in module_names:
 			raise CheckError("Module '%s' redefined" % m.module_name)
 		module_names[m.module_name] = True
-		if not os.path.isdir(m.module_dir):
-			raise CheckError("Invalid base dir for module '%s' (%s)" % (m.module_name, m.module_dir))
+		if not os.path.isdir(m.base_dir):
+			raise CheckError("Invalid base dir for module '%s' (%s)" % (m.module_name, m.base_dir))
 		for i in m.include_dirs:
 			if not os.path.isdir(i):
 				raise CheckError("Invalid include for module '%s' (%s)" % (m.module_name, i))
 		for checked_module in checked:
-			if m.module_dir == checked_module.module_dir:
+			if m.base_dir == checked_module.base_dir:
 				raise CheckError("Modules '%s' and '%s' have the same dir (%s)" % (
-					m.module_name, checked_module.module_name, m.module_dir
+					m.module_name, checked_module.module_name, m.base_dir
 				))
 			for i in m.include_dirs:
 				if i in checked_module.include_dirs:

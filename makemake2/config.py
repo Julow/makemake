@@ -1,21 +1,29 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    main.py                                            :+:      :+:    :+:    #
+#    config.py                                          :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/15 09:25:59 by jaguillo         ###   ########.fr        #
+#    Created: 2015/10/15 10:39:40 by jaguillo          #+#    #+#              #
+#    Updated: 2015/10/15 13:26:33 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-import module_searcher
+MODULE_FILE_NAME = "module"
 
-try:
-	modules = module_searcher.load()
-	for m in modules:
-		print str(m)
-except str as e:
-	print "Error: %s" % e
-	exit(1)
+EXCLUDE_DIRS = [".git"]
+
+DEFAULT_VISIBILITY = "private"
+
+SOURCE_EXT = [".c", ".cpp", ".h", ".hpp", ".tpp"]
+
+INCLUDE_REG = '^ *# *include *(?:"([^"]+)"|<([^>]+)>)'
+
+class BaseError(Exception):
+
+	def __init__(self, err):
+		self.err = err
+
+	def __str__(self):
+		return self.err

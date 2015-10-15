@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/10/15 09:15:03 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/15 13:09:33 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,10 +17,10 @@ import os
 #
 class ModuleDef():
 
-	def __init__(self, module_name, module_dir):
+	def __init__(self, module_name, base_dir):
 
 		self.module_name = module_name
-		self.module_dir = module_dir
+		self.base_dir = base_dir
 		self.include_dirs = []
 		self.public_required = []
 		self.private_required = []
@@ -33,7 +33,7 @@ class ModuleDef():
 	def include(self, dirs):
 		for d in dirs:
 			if not d.startswith("/"):
-				d = os.path.join(self.module_dir, d)
+				d = os.path.join(self.base_dir, d)
 			if not d in self.include_dirs:
 				self.include_dirs.append(d)
 
@@ -73,7 +73,7 @@ class ModuleDef():
 	# debug
 	def __str__(self):
 		s = "Module %s\n" % self.module_name
-		s += "%24s: %s\n" % ("base dir", self.module_dir)
+		s += "%24s: %s\n" % ("base dir", self.base_dir)
 		s += "%24s: %s\n" % ("public dirs", ", ".join(self.include_dirs))
 		s += "%24s: %s\n" % ("public require", ", ".join(self.public_required))
 		s += "%24s: %s\n" % ("private require", ", ".join(self.private_required))
@@ -92,16 +92,3 @@ class ModuleDef():
 			for r in recipes:
 				s += "%28s%s\n" % (' ', r)
 		return s
-
-
-
-from sys import argv
-
-modules = []
-
-for arg in argv[1:]:
-	for m in parse_module_file(arg):
-		if m in modules:
-			raise "Module '%s' defined twice" % m
-		modules.append(m)
-
