@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 18:17:47 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 18:30:54 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -74,8 +74,8 @@ def scan(file_name):
 #
 
 def get_dirs(module_list, module, private = True):
-	dirs = list(module.include_dirs)
-	# dirs = [module.base_dir] + module.include_dirs
+	dirs = list(module.public_includes)
+	# dirs = [module.base_dir] + module.public_includes
 	module_list = list(module_list)
 	module_list.remove(module)
 	for r in module.public_required:
@@ -83,6 +83,7 @@ def get_dirs(module_list, module, private = True):
 			if not d in dirs:
 				dirs.append(d)
 	if private:
+		dirs += module.private_includes
 		for r in module.private_required:
 			for d in get_dirs(module_list, _get_module(module_list, r), False):
 				if not d in dirs:
@@ -94,9 +95,9 @@ def get_dirs(module_list, module, private = True):
 #  return a map {source_name: (dependencies, ext data)}
 #
 
-def track_dir(search_dir, include_dirs, dep = DependencyMap()):
+def track_dir(search_dir, public_includes, dep = DependencyMap()):
 	sources = {}
-	dep.search_dirs = include_dirs
+	dep.search_dirs = public_includes
 	for (f, ext_data) in source_finder.find(search_dir):
 		sources[f] = (dep.track(os.path.abspath(f)), ext_data)
 	return sources

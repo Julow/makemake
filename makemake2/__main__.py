@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 18:20:35 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 18:42:09 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,15 +21,9 @@ import os
 #
 # makemake2 [command]
 #
-# Available commands:
-#  list					# Print a list of modules
-#  check				# Check for error
-#  help					# Print help
-#
 
 #
 # TODO:
-# private include instruction
 # public local instruction
 # override default recipe (possible ??)
 #
@@ -107,8 +101,10 @@ def info_command(args):
 		modules = arg_modules
 	for m in modules:
 		print "module %s: %s" % (m.module_name, os.path.relpath(m.base_dir))
-		for i in m.include_dirs:
-			print "\tinclude %s" % os.path.relpath(m.base_dir)
+		for i in m.public_includes:
+			print "\tpublic include %s" % os.path.relpath(i)
+		for i in m.private_includes:
+			print "\tprivate include %s" % os.path.relpath(i)
 		for r in m.public_required:
 			print "\tpublic require %s" % r
 		for r in m.private_required:

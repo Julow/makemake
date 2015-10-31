@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 12:31:30 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 18:34:13 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,7 +32,7 @@ def check(modules):
 		module_names[m.module_name] = True
 		if not os.path.isdir(m.base_dir):
 			raise CheckError("Invalid base dir for module '%s' (%s)" % (m.module_name, m.base_dir))
-		for i in m.include_dirs:
+		for i in m.public_includes:
 			if not os.path.isdir(i):
 				raise CheckError("Invalid include for module '%s' (%s)" % (m.module_name, i))
 		for checked_module in checked:
@@ -40,8 +40,8 @@ def check(modules):
 				raise CheckError("Modules '%s' and '%s' have the same dir (%s)" % (
 					m.module_name, checked_module.module_name, m.base_dir
 				))
-			for i in m.include_dirs:
-				if i in checked_module.include_dirs:
+			for i in m.public_includes:
+				if i in checked_module.public_includes:
 					raise CheckError("Modules '%s' and '%s' include the same dir (%s)" % (
 						m.module_name, checked_module.module_name, i
 					))

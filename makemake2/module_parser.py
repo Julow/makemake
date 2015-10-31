@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 18:20:27 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 18:32:28 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,12 +29,15 @@ import config
 #
 #									# Everything is optionnal
 #
-#	include include/					# path to public headers dir (or file)
+#	public include include/				# Path to public headers dir (or file)
+#
+#	private include include/internal	# local HEAD_FLAGS += -Iinclude/internal
+#	include templates					# Same
 #
 #	public require module1				# Declare a public dependency
 #
 #	private require module2				# Same but the dependency is private
-#	require module3						# Default visibility is 'private'
+#	require module3						# Default visibility is always 'private'
 #
 #	put LINK_FLAGS -lm					# Put (without dupplicate) '-lm'
 #											to the variable LINK_FLAGS
@@ -53,7 +56,7 @@ import config
 #
 
 MODULE_INSTRUCTIONS = {
-	"include":	(1, -1,	lambda m, w, v: ModuleDef.include(m, w)),
+	"include":	(1, -1,	lambda m, w, v: ModuleDef.include(m, w, v == "public")),
 	"require":	(1, 1,	lambda m, w, v: ModuleDef.require(m, w[0], v == "public")),
 	"put":		(2, -1,	lambda m, w, v: ModuleDef.put(m, w[0], w[1:])),
 	"local":	(1, -1,	lambda m, w, v: ModuleDef.local(m, " ".join(w))),

@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/10/31 18:11:35 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 18:42:35 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,7 +21,8 @@ class ModuleDef():
 
 		self.module_name = module_name
 		self.base_dir = base_dir
-		self.include_dirs = []
+		self.public_includes = []
+		self.private_includes = []
 		self.public_required = []
 		self.private_required = []
 		self.to_put = {}
@@ -30,12 +31,16 @@ class ModuleDef():
 		self.defaultRecipes = []
 		self.targets = []
 
-	def include(self, dirs):
+	def include(self, dirs, public):
 		for d in dirs:
 			if not d.startswith("/"):
 				d = os.path.join(self.base_dir, d)
-			if not d in self.include_dirs:
-				self.include_dirs.append(d)
+			if public:
+				if not d in self.public_includes:
+					self.public_includes.append(d)
+			else:
+				if not d in self.private_includes:
+					self.private_includes.append(d)
 
 	def require(self, module, public):
 		if public:
@@ -69,29 +74,6 @@ class ModuleDef():
 
 	def target(self, code):
 		self.targets.append((code, []))
-
-	# debug
-	def __str__(self):
-		s = "Module %s\n" % self.module_name
-		s += "%24s: %s\n" % ("base dir", self.base_dir)
-		s += "%24s: %s\n" % ("public dirs", ", ".join(self.include_dirs))
-		s += "%24s: %s\n" % ("public require", ", ".join(self.public_required))
-		s += "%24s: %s\n" % ("private require", ", ".join(self.private_required))
-		for v in self.to_put:
-			s += "%24s: %s\n" % ("put to %s" % v, ", ".join(self.to_put[v]))
-		for l in self.locals:
-			s += "%24s: %s\n" % ("local", l)
-		if not self.auto_enabled:
-			s += "%24s: auto\n" % "disable"
-		if len(self.defaultRecipes) > 0:
-			s += "%24s:\n" % "default recipes"
-			for r in self.defaultRecipes:
-				s += "%28s%s\n" % (' ', r)
-		for t, recipes in self.targets:
-			s += "%24s: %s\n" % ("target", t)
-			for r in recipes:
-				s += "%28s%s\n" % (' ', r)
-		return s
 
 #
 # Search a module by name in a module list
