@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 17:41:03 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 18:17:47 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -74,7 +74,8 @@ def scan(file_name):
 #
 
 def get_dirs(module_list, module, private = True):
-	dirs = [module.base_dir] + module.include_dirs
+	dirs = list(module.include_dirs)
+	# dirs = [module.base_dir] + module.include_dirs
 	module_list = list(module_list)
 	module_list.remove(module)
 	for r in module.public_required:

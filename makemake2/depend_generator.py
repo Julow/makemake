@@ -6,12 +6,13 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/10/31 18:02:45 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 18:21:45 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
 import module_def
+import dependency_finder
 import config
 
 #
@@ -29,7 +30,7 @@ def out(out, modules, source_map):
 	for m in modules:
 		out.write("\n# module %s\n" % m.module_name)
 		out_targets(out, m)
-		out_autos(out, m, source_map[m], obj_files[m])
+		out_autos(out, modules, m, source_map[m], obj_files[m])
 
 #
 
@@ -61,17 +62,25 @@ def out_targets(out, module):
 		for r in target[1]:
 			out.write("\t%s\n" % r)
 
-def out_autos(out, module, sources, obj_files):
+def out_autos(out, module_list, module, sources, obj_files):
 	for o_file in obj_files:
 		s_file = obj_files[o_file]
 		dependencies = [os.path.relpath(f) for f in [s_file] + sorted(sources[s_file][0])]
 		for l in module.locals:
 			out.write("%s: %s\n" % (o_file, l))
+		out_head_flags(out, module_list, module, o_file)
 		prefix = "%s:" % o_file
 		dep_list = dependencies + ["| %s/" % os.path.dirname(o_file)]
 		out.write(prefix)
 		print_file_list(out, dep_list, len(prefix), "\t", " ", " \\")
 		out.write("\n")
+
+def out_head_flags(out, module_list, module, o_file):
+	prefix = "%s: %s +=" % (o_file, config.HEAD_FLAGS_VAR)
+	incs = ["-I" + os.path.relpath(i) for i in dependency_finder.get_dirs(module_list, module)] # TODO opti
+	out.write(prefix)
+	print_file_list(out, incs, len(prefix), "\t", " ", " \\")
+	out.write("\n")
 
 #
 

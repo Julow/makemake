@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 17:01:12 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 18:20:27 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -40,9 +40,6 @@ import config
 #											to the variable LINK_FLAGS
 #
 #	local DEBUG_FLAGS += -DDEBUG		# Target only variable
-#
-#	recipe $(CC) $(FLAGS) -o $@ $^		# Override default recipe
-#	recipe echo $@ done					# or add one
 #
 #	disable auto						# Disable automatic search for source
 #

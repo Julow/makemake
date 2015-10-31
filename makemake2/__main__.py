@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 17:47:26 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 18:20:35 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,7 +31,7 @@ import os
 # TODO:
 # private include instruction
 # public local instruction
-# overridable default recipe (possible ??)
+# override default recipe (possible ??)
 #
 
 def list_command(args):
