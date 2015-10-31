@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 12:31:25 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 17:01:12 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,7 +45,6 @@ import config
 #	recipe echo $@ done					# or add one
 #
 #	disable auto						# Disable automatic search for source
-#											and creation of a target for each
 #
 #	target test.o: test.c test.h		# Add a target
 #

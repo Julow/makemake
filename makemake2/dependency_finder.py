@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 15:10:29 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 17:01:23 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -52,19 +52,21 @@ def get_dirs(module_list, module, private = True):
 
 #
 # Search source files and their dependencies
-#  return a map {source_name: dependencies}
+#  return a map {source_name: (dependencies, ext data)}
 #
 
 def track_dir(search_dir, include_dirs):
+	sources = {}
 	dep = DependencyMap(include_dirs)
-	for f in source_finder.find(search_dir):
-		dep.track(os.path.abspath(f))
-	return dep.map
+	for (f, ext_data) in source_finder.find(search_dir):
+		sources[f] = (dep.track(os.path.abspath(f)), ext_data)
+	return sources
 
 #
 # It's like using track_dir and get_dirs together
-#  return a map {module: {source_name: dependencies}}
+#  return a map {module: track_dir()}
 #
+# TODO: use the same DependencyMap for all modules (big opti)
 
 def track(modules):
 	source_map = {}
@@ -91,11 +93,10 @@ class DependencyMap():
 
 	def __init__(self, search_dirs):
 
-		self.map = {}
 		self.track_map = {}
 		self.search_dirs = search_dirs
 
-	def track(self, file_name, lol = True):
+	def track(self, file_name):
 		if file_name in self.track_map:
 			if self.track_map[file_name] == None:
 				raise config.BaseError("Include loop") # TODO: exception
@@ -108,7 +109,7 @@ class DependencyMap():
 				inc_abs = os.path.join(d, inc)
 				if os.path.isfile(inc_abs):
 					includes.append(inc_abs)
-					for i in self.track(inc_abs, False):
+					for i in self.track(inc_abs):
 						if not i in includes:
 							includes.append(i)
 					ok = True
@@ -120,6 +121,4 @@ class DependencyMap():
 					inc, file_name
 				)) # TODO: exception
 		self.track_map[file_name] = includes
-		if lol:
-			self.map[file_name] = includes
 		return includes

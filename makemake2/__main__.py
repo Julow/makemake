@@ -6,13 +6,14 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 15:25:07 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 17:29:50 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-from sys import argv
+from sys import argv, stdout
 import module_searcher
 import dependency_finder
+import depend_generator
 import module_def
 import config
 import os
@@ -30,6 +31,8 @@ import os
 # TODO:
 # depend.mk generation
 # private include instruction
+# public local instruction
+# overridable default recipe (possible ??)
 #
 
 def list_command(args):
@@ -47,6 +50,7 @@ def list_command(args):
 
 def check_command(args):
 	modules = module_searcher.load()
+	dependency_finder.track(modules)
 	if len(modules) == 0:
 		print "No module found"
 	else:
@@ -67,6 +71,10 @@ HELP = {
 	"info": ("Show info about modules", """
 		Take module names as argument
 		If called without argument, show info about each modules
+"""),
+	"put": ("Show variables putted by one or more modules", """
+		Take module names as argument
+		If called without argument, show var of all modules
 """),
 	"help": ("Show help about a command", """
 		Take command names as argument and show their helps
@@ -125,7 +133,7 @@ def show_dep(module, sources):
 	print "# module %s" % module.module_name
 	for src in sources:
 		includes = []
-		for i in sources[src]:
+		for i in sources[src][0]:
 			includes.append(os.path.relpath(i))
 		print "%s: %s" % (os.path.basename(src), " ".join(includes))
 
@@ -145,8 +153,24 @@ def dep_command(args):
 			else:
 				raise config.BaseError("WTF happen with module '%s'" % m)
 
+def put_command(args):
+	put = {}
+	for m in module_searcher.load():
+		if len(args) > 0 and not m.module_name in args:
+			continue
+		for var in m.to_put:
+			if not var in put:
+				put[var] = []
+			for word in m.to_put[var]:
+				if not word in put[var]:
+					put[var].append(word)
+	for var in put.keys():
+		print "%s = %s" % (var, " ".join(put[var]))
+
 def debug_command(args):
-	print "DEBUGGGGGGGGGGGGGGGGGG"
+	modules = module_searcher.load()
+	source_map = dependency_finder.track(modules)
+	depend_generator.out(stdout, modules, source_map)
 
 COMMANDS = {
 	"list": list_command,
@@ -154,6 +178,7 @@ COMMANDS = {
 	"help": help_command,
 	"dep": dep_command,
 	"info": info_command,
+	"put": put_command,
 	"debug": debug_command,
 }
 

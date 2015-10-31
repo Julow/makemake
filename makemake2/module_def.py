@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/10/15 17:53:18 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/31 16:30:14 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -102,3 +102,19 @@ def get_module(module_list, name):
 		if m.module_name == name:
 			return m
 	return None
+
+#
+# Concat all 'put' values
+# Return a map {var_name: [words]}
+#
+
+def get_puts(module_list):
+	put = {}
+	for m in module_list:
+		for var in m.to_put:
+			if not var in put:
+				put[var] = []
+			for word in m.to_put[var]:
+				if not word in put[var]:
+					put[var].append(word)
+	return put
