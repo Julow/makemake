@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 18:42:09 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 22:04:23 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,6 +14,7 @@ from sys import argv, stdout
 import module_searcher
 import dependency_finder
 import depend_generator
+import makefile_generator
 import module_def
 import config
 import os
@@ -24,6 +25,7 @@ import os
 
 #
 # TODO:
+# ?path? for full relative path (in module file)
 # public local instruction
 # override default recipe (possible ??)
 #
@@ -68,6 +70,12 @@ HELP = {
 	"put": ("Show variables putted by one or more modules", """
 		Take module names as argument
 		If called without argument, show var of all modules
+"""),
+	"gen": ("Generate depend file", """
+		Generate a depend file
+"""),
+	"makefile": ("Create a basic Makefile", """
+		Create a basic Makefile
 """),
 	"help": ("Show help about a command", """
 		Take command names as argument and show their helps
@@ -163,9 +171,18 @@ def put_command(args):
 		print "%s = %s" % (var, " ".join(put[var]))
 
 def debug_command(args):
+	print ""
+
+def gen_command(args):
 	modules = module_searcher.load()
 	source_map = dependency_finder.track(modules)
 	depend_generator.out(stdout, modules, source_map)
+
+def makefile_command(args):
+	if os.path.exists(config.MAKEFILE_NAME):
+		print "Makefile already exists"
+	else:
+		makefile_generator.gen(config.MAKEFILE_NAME)
 
 COMMANDS = {
 	"list": list_command,
@@ -174,6 +191,8 @@ COMMANDS = {
 	"dep": dep_command,
 	"info": info_command,
 	"put": put_command,
+	"gen": gen_command,
+	"makefile": makefile_command,
 	"debug": debug_command,
 }
 

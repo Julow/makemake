@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/10/31 18:21:45 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 22:16:28 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -76,7 +76,7 @@ def out_autos(out, module_list, module, sources, obj_files):
 		out.write("\n")
 
 def out_head_flags(out, module_list, module, o_file):
-	prefix = "%s: %s +=" % (o_file, config.HEAD_FLAGS_VAR)
+	prefix = "%s: %s +=" % (o_file, config.INCLUDE_FLAGS_VAR)
 	incs = ["-I" + os.path.relpath(i) for i in dependency_finder.get_dirs(module_list, module)] # TODO opti
 	out.write(prefix)
 	print_file_list(out, incs, len(prefix), "\t", " ", " \\")
