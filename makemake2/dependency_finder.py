@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 17:01:23 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 17:41:03 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,44 @@ import source_finder
 import module_def
 
 INCLUDE_REG = re.compile(config.INCLUDE_REG)
+
+#
+# Class used to build a list of dependency
+#
+
+class DependencyMap():
+
+	def __init__(self):
+
+		self.track_map = {}
+		self.search_dirs = []
+
+	def track(self, file_name):
+		if file_name in self.track_map:
+			if self.track_map[file_name] == None:
+				raise config.BaseError("Include loop") # TODO: exception
+			return self.track_map[file_name]
+		self.track_map[file_name] = None
+		includes = []
+		for inc in scan(file_name):
+			ok = False
+			for d in self.search_dirs:
+				inc_abs = os.path.join(d, inc)
+				if os.path.isfile(inc_abs):
+					includes.append(inc_abs)
+					for i in self.track(inc_abs):
+						if not i in includes:
+							includes.append(i)
+					ok = True
+					break
+			 # TODO: relative include
+			 # or TODO: soft error
+			if not ok:
+				raise config.BaseError("Unable to found include '%s' included from '%s'" % (
+					inc, file_name
+				)) # TODO: exception
+		self.track_map[file_name] = includes
+		return includes
 
 #
 # Return a list of included file
@@ -55,9 +93,9 @@ def get_dirs(module_list, module, private = True):
 #  return a map {source_name: (dependencies, ext data)}
 #
 
-def track_dir(search_dir, include_dirs):
+def track_dir(search_dir, include_dirs, dep = DependencyMap()):
 	sources = {}
-	dep = DependencyMap(include_dirs)
+	dep.search_dirs = include_dirs
 	for (f, ext_data) in source_finder.find(search_dir):
 		sources[f] = (dep.track(os.path.abspath(f)), ext_data)
 	return sources
@@ -66,15 +104,15 @@ def track_dir(search_dir, include_dirs):
 # It's like using track_dir and get_dirs together
 #  return a map {module: track_dir()}
 #
-# TODO: use the same DependencyMap for all modules (big opti)
 
 def track(modules):
 	source_map = {}
+	dep = DependencyMap()
 	for m in modules:
 		if not m.auto_enabled:
 			source_map[m] = {}
 			continue
-		source_map[m] = track_dir(m.base_dir, get_dirs(modules, m))
+		source_map[m] = track_dir(m.base_dir, get_dirs(modules, m), dep)
 	return source_map
 
 #
@@ -88,37 +126,3 @@ def _get_module(module_list, name):
 	return m
 
 #
-
-class DependencyMap():
-
-	def __init__(self, search_dirs):
-
-		self.track_map = {}
-		self.search_dirs = search_dirs
-
-	def track(self, file_name):
-		if file_name in self.track_map:
-			if self.track_map[file_name] == None:
-				raise config.BaseError("Include loop") # TODO: exception
-			return self.track_map[file_name]
-		self.track_map[file_name] = None
-		includes = []
-		for inc in scan(file_name):
-			ok = False
-			for d in self.search_dirs:
-				inc_abs = os.path.join(d, inc)
-				if os.path.isfile(inc_abs):
-					includes.append(inc_abs)
-					for i in self.track(inc_abs):
-						if not i in includes:
-							includes.append(i)
-					ok = True
-					break
-			 # TODO: relative include
-			 # or TODO: soft error
-			if not ok:
-				raise config.BaseError("Unable to found include '%s' included from '%s'" % (
-					inc, file_name
-				)) # TODO: exception
-		self.track_map[file_name] = includes
-		return includes

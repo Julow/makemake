@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/10/31 17:33:18 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 18:02:45 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,12 +25,11 @@ def out(out, modules, source_map):
 		o = get_obj_files(source_map[m])
 		obj_file_list += o
 		obj_files[m] = o
-	out_puts(modules, {"O_FILES": obj_file_list})
+	out_puts(out, modules, {"O_FILES": sorted(obj_file_list)})
 	for m in modules:
-		print ""
-		print "# module %s" % m.module_name
-		out_targets(m)
-		out_autos(m, source_map[m], obj_files[m])
+		out.write("\n# module %s\n" % m.module_name)
+		out_targets(out, m)
+		out_autos(out, m, source_map[m], obj_files[m])
 
 #
 
@@ -44,24 +43,51 @@ def get_obj_files(sources):
 
 #
 
-def out_puts(modules, extra):
+def out_puts(out, modules, extra):
 	puts = module_def.get_puts(modules)
 	for var in puts.keys() + extra.keys():
 		p = puts[var] if var in puts else []
 		if var in extra:
 			p += extra[var]
-		print "%s += %s" % (var, " ".join(p))
+		prefix = "%s +=" % var
+		out.write(prefix)
+		print_file_list(out, p, len(prefix), "\t", " ", " \\")
+		out.write("\n")
 
-def out_targets(module):
+def out_targets(out, module):
 	for target in module.targets:
-		print target[0]
+		out.write(target[0])
+		out.write("\n")
 		for r in target[1]:
-			print "\t%s" % r
+			out.write("\t%s\n" % r)
 
-def out_autos(module, sources, obj_files):
+def out_autos(out, module, sources, obj_files):
 	for o_file in obj_files:
 		s_file = obj_files[o_file]
-		dependencies = [os.path.relpath(f) for f in sources[s_file][0] + [s_file]]
+		dependencies = [os.path.relpath(f) for f in [s_file] + sorted(sources[s_file][0])]
 		for l in module.locals:
-			print "%s: %s" % (o_file, l)
-		print "%s: %s | %s" % (o_file, " ".join(dependencies), os.path.dirname(o_file))
+			out.write("%s: %s\n" % (o_file, l))
+		prefix = "%s:" % o_file
+		dep_list = dependencies + ["| %s/" % os.path.dirname(o_file)]
+		out.write(prefix)
+		print_file_list(out, dep_list, len(prefix), "\t", " ", " \\")
+		out.write("\n")
+
+#
+
+def print_file_list(out, files, offset, indent, sep, endl):
+	indent_len = len(indent.expandtabs(4))
+	sep_len = len(sep)
+	endl_len = len(endl)
+	for f in files:
+		if (len(f) + offset + sep_len + endl_len) > config.MAX_LINE_LENGTH and offset != indent_len:
+			offset = indent_len
+			out.write(endl)
+			out.write("\n")
+			out.write(indent)
+		if offset > indent_len:
+			out.write(sep)
+			offset += sep_len
+		out.write(f)
+		offset += len(f)
+	return offset

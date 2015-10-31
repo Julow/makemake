@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:39:40 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 17:10:41 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 17:49:33 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,6 +25,8 @@ EXTENSIONS = [
 ]
 
 OBJ_DIR = "o/" # TODO
+
+MAX_LINE_LENGTH = 80
 
 INCLUDE_REG = '^ *# *include *(?:"([^"]+)"|<([^>]+)>)'
 
