@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:39:40 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 23:12:24 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 23:17:12 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,6 +27,7 @@ EXTENSIONS = [
 OBJ_DIR = "$(O_DIR)"
 
 MAKEFILE_NAME = "Makefile"
+DEPEND_FILE_NAME = "depend.mk"
 
 MAX_LINE_LENGTH = 80
 

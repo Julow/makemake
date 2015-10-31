@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/10/31 22:16:28 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 23:16:57 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,14 @@ import dependency_finder
 import config
 
 #
-# Output a depend.mk to 'out'
+# Overwrite file_name
+#
+def gen(file_name, modules, source_map):
+	with open(file_name, "w") as f:
+		out(f, modules, source_map)
+
+#
+# Output a depend file to 'out'
 #
 
 def out(out, modules, source_map):

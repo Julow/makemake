@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 22:04:23 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 23:17:27 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -176,7 +176,7 @@ def debug_command(args):
 def gen_command(args):
 	modules = module_searcher.load()
 	source_map = dependency_finder.track(modules)
-	depend_generator.out(stdout, modules, source_map)
+	depend_generator.gen(config.DEPEND_FILE_NAME, modules, source_map)
 
 def makefile_command(args):
 	if os.path.exists(config.MAKEFILE_NAME):

@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 21:26:47 by juloo             #+#    #+#              #
-#    Updated: 2015/10/31 23:12:42 by juloo            ###   ########.fr        #
+#    Updated: 2015/10/31 23:18:04 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -61,7 +61,7 @@ else
 endif
 
 # Depend file name
-DEPEND			:= depend.mk
+DEPEND			:= %(depend_file)s
 
 # tmp
 SUBMODULE_RULES	:= $(addsuffix /.git,$(SUBMODULES))
@@ -171,5 +171,6 @@ def gen(file_name):
 		f.write(MAKEFILE % {
 			"name": guess_name(),
 			"submodules": " ".join(guess_submodules()),
-			"include_flags": config.INCLUDE_FLAGS_VAR
+			"include_flags": config.INCLUDE_FLAGS_VAR,
+			"depend_file": config.DEPEND_FILE_NAME
 		})
