@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/15 18:22:17 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/31 15:25:07 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,8 +28,8 @@ import os
 
 #
 # TODO:
-# Dependency generation
 # depend.mk generation
+# private include instruction
 #
 
 def list_command(args):
@@ -120,34 +120,33 @@ def info_command(args):
 				print "\trecipe %s" % r
 		print ""
 
+# dep command
+def show_dep(module, sources):
+	print "# module %s" % module.module_name
+	for src in sources:
+		includes = []
+		for i in sources[src]:
+			includes.append(os.path.relpath(i))
+		print "%s: %s" % (os.path.basename(src), " ".join(includes))
+
 def dep_command(args):
-	if len(args) == 0:
-		raise config.BaseError("Not enougth argument") # TODO: exception
 	modules = module_searcher.load()
 	source_map = dependency_finder.track(modules)
-	arg_modules = []
-	for m in args:
-		tmp = module_def.get_module(modules, m)
-		if tmp in source_map:
-			arg_modules.append(tmp)
-		else:
-			raise config.BaseError("Unknow module '%s'" % m) # TODO: exception
-	for m in arg_modules:
-		for src in source_map[m]:
-			includes = []
-			for i in source_map[m][src]:
-				includes.append(os.path.relpath(i))
-			print "%s: %s" % (os.path.basename(src), " ".join(includes))
+	if len(args) == 0:
+		for m in modules:
+			show_dep(m, source_map[m])
+	else:
+		for m in args:
+			tmp = module_def.get_module(modules, m)
+			if tmp == None:
+				raise config.BaseError("Unknow module '%s'" % m) # TODO: exception
+			if tmp in source_map:
+				show_dep(tmp, source_map[tmp])
+			else:
+				raise config.BaseError("WTF happen with module '%s'" % m)
 
 def debug_command(args):
-	source_map = dependency_finder.track(module_searcher.load())
-	for m in source_map:
-		print "MODULE %s:" % m.module_name
-		for src in source_map[m]:
-			includes = []
-			for i in source_map[m][src]:
-				includes.append(os.path.relpath(i))
-			print "\t%20s: %s" % (os.path.basename(src), ", ".join(includes))
+	print "DEBUGGGGGGGGGGGGGGGGGG"
 
 COMMANDS = {
 	"list": list_command,

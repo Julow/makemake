@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/15 13:09:44 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/31 12:31:30 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@ import config
 class CheckError(config.BaseError):
 
 	def __init__(self, err):
-		config.BaseError(self, err)
+		super(CheckError, self).__init__(err)
 
 #
 # Check for errors

@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/15 13:09:59 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/31 12:31:25 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -69,7 +69,7 @@ MODULE_INSTRUCTIONS = {
 class ParserError(config.BaseError):
 
 	def __init__(self, err):
-		config.BaseError(self, err)
+		super(ParserError, self).__init__(err)
 
 #
 # Parse a module file

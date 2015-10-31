@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/15 18:00:55 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/10/31 15:10:29 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -70,7 +70,7 @@ def track(modules):
 	source_map = {}
 	for m in modules:
 		if not m.auto_enabled:
-			source_map[m] = []
+			source_map[m] = {}
 			continue
 		source_map[m] = track_dir(m.base_dir, get_dirs(modules, m))
 	return source_map
@@ -92,14 +92,15 @@ class DependencyMap():
 	def __init__(self, search_dirs):
 
 		self.map = {}
+		self.track_map = {}
 		self.search_dirs = search_dirs
 
-	def track(self, file_name):
-		if file_name in self.map:
-			if self.map[file_name] == None:
+	def track(self, file_name, lol = True):
+		if file_name in self.track_map:
+			if self.track_map[file_name] == None:
 				raise config.BaseError("Include loop") # TODO: exception
-			return self.map[file_name]
-		self.map[file_name] = None
+			return self.track_map[file_name]
+		self.track_map[file_name] = None
 		includes = []
 		for inc in scan(file_name):
 			ok = False
@@ -107,14 +108,18 @@ class DependencyMap():
 				inc_abs = os.path.join(d, inc)
 				if os.path.isfile(inc_abs):
 					includes.append(inc_abs)
-					for i in self.track(inc_abs):
+					for i in self.track(inc_abs, False):
 						if not i in includes:
 							includes.append(i)
 					ok = True
 					break
-			if not ok: # TODO: relative include
+			 # TODO: relative include
+			 # or TODO: soft error
+			if not ok:
 				raise config.BaseError("Unable to found include '%s' included from '%s'" % (
 					inc, file_name
 				)) # TODO: exception
-		self.map[file_name] = includes
+		self.track_map[file_name] = includes
+		if lol:
+			self.map[file_name] = includes
 		return includes
