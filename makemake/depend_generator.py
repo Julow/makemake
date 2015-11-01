@@ -6,12 +6,12 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/01 10:01:20 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/01 10:59:50 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
-import module_def
+import module
 import dependency_finder
 import config
 
@@ -35,7 +35,7 @@ def out(out, modules, source_map):
 		obj_files[m] = o
 	out_puts(out, modules, {"O_FILES": obj_file_list})
 	for m in modules:
-		out.write("\n# module %s\n" % m.module_name)
+		out.write("\n# module %s\n" % m.name)
 		out_targets(out, m)
 		out_autos(out, modules, m, source_map[m], obj_files[m])
 
@@ -52,7 +52,7 @@ def get_obj_files(sources):
 #
 
 def out_puts(out, modules, extra):
-	puts = module_def.get_puts(modules)
+	puts = module.get_puts(modules)
 	for var in puts.keys() + extra.keys():
 		p = puts[var] if var in puts else []
 		if var in extra:

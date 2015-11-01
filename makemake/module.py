@@ -1,25 +1,26 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    module_def.py                                      :+:      :+:    :+:    #
+#    module.py                                          :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/10/31 18:42:35 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/01 11:00:13 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
+import config
 
 #
-# Represent a module declaration
+# Represent a module
 #
-class ModuleDef():
+class Module():
 
 	def __init__(self, module_name, base_dir):
 
-		self.module_name = module_name
+		self.name = module_name
 		self.base_dir = base_dir
 		self.public_includes = []
 		self.private_includes = []
@@ -74,16 +75,6 @@ class ModuleDef():
 
 	def target(self, code):
 		self.targets.append((code, []))
-
-#
-# Search a module by name in a module list
-#
-
-def get_module(module_list, name):
-	for m in module_list:
-		if m.module_name == name:
-			return m
-	return None
 
 #
 # Concat all 'put' values

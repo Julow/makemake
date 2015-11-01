@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 18:30:54 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/01 10:50:08 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@ import config
 import re
 import os
 import source_finder
-import module_def
+import module
 
 INCLUDE_REG = re.compile(config.INCLUDE_REG)
 
@@ -79,13 +79,13 @@ def get_dirs(module_list, module, private = True):
 	module_list = list(module_list)
 	module_list.remove(module)
 	for r in module.public_required:
-		for d in get_dirs(module_list, _get_module(module_list, r), False):
+		for d in get_dirs(module_list, r, False):
 			if not d in dirs:
 				dirs.append(d)
 	if private:
 		dirs += module.private_includes
 		for r in module.private_required:
-			for d in get_dirs(module_list, _get_module(module_list, r), False):
+			for d in get_dirs(module_list, r, False):
 				if not d in dirs:
 					dirs.append(d)
 	return dirs
@@ -116,15 +116,5 @@ def track(modules):
 			continue
 		source_map[m] = track_dir(m.base_dir, get_dirs(modules, m), dep)
 	return source_map
-
-#
-#
-#
-
-def _get_module(module_list, name):
-	m = module_def.get_module(module_list, name)
-	if m == None:
-		raise config.BaseError("Include loop: '%s' included from ??" % name)
-	return m
 
 #

@@ -6,12 +6,12 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 18:32:28 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/01 10:56:22 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
-from module_def import ModuleDef
+import module
 import config
 
 #
@@ -56,13 +56,13 @@ import config
 #
 
 MODULE_INSTRUCTIONS = {
-	"include":	(1, -1,	lambda m, w, v: ModuleDef.include(m, w, v == "public")),
-	"require":	(1, 1,	lambda m, w, v: ModuleDef.require(m, w[0], v == "public")),
-	"put":		(2, -1,	lambda m, w, v: ModuleDef.put(m, w[0], w[1:])),
-	"local":	(1, -1,	lambda m, w, v: ModuleDef.local(m, " ".join(w))),
-	"disable":	(1, 1,	lambda m, w, v: ModuleDef.disable(m, w[0])),
-	"recipe":	(1, -1,	lambda m, w, v: ModuleDef.recipe(m, " ".join(w))),
-	"target":	(1, -1,	lambda m, w, v: ModuleDef.target(m, " ".join(w)))
+	"include":	(1, -1,	lambda m, w, v: m.include(w, v == "public")),
+	"require":	(1, 1,	lambda m, w, v: m.require(w[0], v == "public")),
+	"put":		(2, -1,	lambda m, w, v: m.put(w[0], w[1:])),
+	"local":	(1, -1,	lambda m, w, v: m.local(" ".join(w))),
+	"disable":	(1, 1,	lambda m, w, v: m.disable(w[0])),
+	"recipe":	(1, -1,	lambda m, w, v: m.recipe(" ".join(w))),
+	"target":	(1, -1,	lambda m, w, v: m.target(" ".join(w)))
 }
 
 class ParserError(config.BaseError):
@@ -72,7 +72,7 @@ class ParserError(config.BaseError):
 
 #
 # Parse a module file
-#  and return a list of ModuleDef
+#  and return a list of Module
 #
 # raise a ParserError on error
 #
@@ -108,7 +108,7 @@ def parse(file_name):
 					if words[1].endswith(":"):
 						words[1] = words[1][:-1]
 					rel = os.path.relpath(words[2] if len(words) == 3 else ".")
-					current_module = ModuleDef(words[1], os.path.abspath(os.path.join(os.path.dirname(file_name), rel)))
+					current_module = module.Module(words[1], os.path.abspath(os.path.join(os.path.dirname(file_name), rel)))
 					modules.append(current_module)
 				elif words[0] in MODULE_INSTRUCTIONS:
 					try:

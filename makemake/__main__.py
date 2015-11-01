@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/31 23:17:27 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/01 10:52:30 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,7 +15,7 @@ import module_searcher
 import dependency_finder
 import depend_generator
 import makefile_generator
-import module_def
+import module
 import config
 import os
 
@@ -38,10 +38,10 @@ def list_command(args):
 		print "%d modules:" % len(modules)
 		max_len = 0
 		for m in modules:
-			if len(m.module_name) > max_len:
-				max_len = len(m.module_name)
+			if len(m.name) > max_len:
+				max_len = len(m.name)
 		for m in modules:
-			print "\t%-*s (%s)" % (max_len, m.module_name, os.path.relpath(m.base_dir))
+			print "\t%-*s (%s)" % (max_len, m.name, os.path.relpath(m.base_dir))
 
 def check_command(args):
 	modules = module_searcher.load()
@@ -100,23 +100,23 @@ def info_command(args):
 	modules = module_searcher.all()
 	if len(args) > 0:
 		for m in args:
-			if module_def.get_module(modules, m) == None:
+			if module.get_module(modules, m) == None:
 				raise config.BaseError("Unknow module '%s'" % m) # TODO: exception
 		arg_modules = []
 		for m in modules:
-			if m.module_name in args:
+			if m.name in args:
 				arg_modules.append(m)
 		modules = arg_modules
 	for m in modules:
-		print "module %s: %s" % (m.module_name, os.path.relpath(m.base_dir))
+		print "module %s: %s" % (m.name, os.path.relpath(m.base_dir))
 		for i in m.public_includes:
 			print "\tpublic include %s" % os.path.relpath(i)
 		for i in m.private_includes:
 			print "\tprivate include %s" % os.path.relpath(i)
 		for r in m.public_required:
-			print "\tpublic require %s" % r
+			print "\tpublic require %s" % r.name
 		for r in m.private_required:
-			print "\tprivate require %s" % r
+			print "\tprivate require %s" % r.name
 		for p in m.to_put:
 			print "\tput %s %s" % (p, " ".join(m.to_put[p]))
 		for l in m.locals:
@@ -132,8 +132,8 @@ def info_command(args):
 		print ""
 
 # dep command
-def show_dep(module, sources):
-	print "# module %s" % module.module_name
+def show_dep(m, sources):
+	print "# module %s" % m.name
 	for src in sources:
 		includes = []
 		for i in sources[src][0]:
@@ -148,7 +148,7 @@ def dep_command(args):
 			show_dep(m, source_map[m])
 	else:
 		for m in args:
-			tmp = module_def.get_module(modules, m)
+			tmp = module.get_module(modules, m)
 			if tmp == None:
 				raise config.BaseError("Unknow module '%s'" % m) # TODO: exception
 			if tmp in source_map:
@@ -159,7 +159,7 @@ def dep_command(args):
 def put_command(args):
 	put = {}
 	for m in module_searcher.load():
-		if len(args) > 0 and not m.module_name in args:
+		if len(args) > 0 and not m.name in args:
 			continue
 		for var in m.to_put:
 			if not var in put:

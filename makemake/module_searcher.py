@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:46 by jaguillo          #+#    #+#              #
-#    Updated: 2015/10/15 12:59:31 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/01 10:57:19 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -42,10 +42,33 @@ def all():
 	return modules
 
 #
-# search + module_parser.parse + module_checker.check
+# Change strings in public_required and private_required
+#  to reference to corresponding Module
+#
+# TODO: handle this in parser
+
+def resolve_refs(module_list):
+	name_map = {}
+	for m in module_list:
+		print m.name
+		name_map[m.name] = m
+	def resolve_list(l):
+		resolved = []
+		for r in l:
+			if not r in name_map:
+				raise config.BaseError("Unknown module '%s'" % r) # TODO: exception
+			resolved.append(name_map[r])
+		return resolved
+	for m in module_list:
+		m.public_required = resolve_list(m.public_required)
+		m.private_required = resolve_list(m.private_required)
+
+#
+# search + module_parser.parse + resolve_refs + module_checker.check
 #
 
 def load():
 	modules = all()
+	resolve_refs(modules)
 	module_checker.check(modules)
 	return modules
