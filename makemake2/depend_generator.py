@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/10/31 23:16:57 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/01 10:01:20 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,9 +31,9 @@ def out(out, modules, source_map):
 	obj_file_list = []
 	for m in modules:
 		o = get_obj_files(source_map[m])
-		obj_file_list += o
+		obj_file_list += sorted(o.keys())
 		obj_files[m] = o
-	out_puts(out, modules, {"O_FILES": sorted(obj_file_list)})
+	out_puts(out, modules, {"O_FILES": obj_file_list})
 	for m in modules:
 		out.write("\n# module %s\n" % m.module_name)
 		out_targets(out, m)
@@ -70,7 +70,7 @@ def out_targets(out, module):
 			out.write("\t%s\n" % r)
 
 def out_autos(out, module_list, module, sources, obj_files):
-	for o_file in obj_files:
+	for o_file in sorted(obj_files.keys()):
 		s_file = obj_files[o_file]
 		dependencies = [os.path.relpath(f) for f in [s_file] + sorted(sources[s_file][0])]
 		for l in module.locals:
@@ -84,7 +84,7 @@ def out_autos(out, module_list, module, sources, obj_files):
 
 def out_head_flags(out, module_list, module, o_file):
 	prefix = "%s: %s +=" % (o_file, config.INCLUDE_FLAGS_VAR)
-	incs = ["-I" + os.path.relpath(i) for i in dependency_finder.get_dirs(module_list, module)] # TODO opti
+	incs = ["-I" + os.path.relpath(i) for i in sorted(dependency_finder.get_dirs(module_list, module))] # TODO opti
 	out.write(prefix)
 	print_file_list(out, incs, len(prefix), "\t", " ", " \\")
 	out.write("\n")

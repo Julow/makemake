@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 21:26:47 by juloo             #+#    #+#              #
-#    Updated: 2015/10/31 23:18:04 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/01 09:48:26 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -68,38 +68,35 @@ SUBMODULE_RULES	:= $(addsuffix /.git,$(SUBMODULES))
 PRINT_FILE		:= .tmp_print
 SHELL			:= /bin/bash
 
-define PRINT_SCRIPT =
-	MAX_LEN=0;
-	for f in $(patsubst $(O_DIR)/%%,%%,$(O_FILES)); do
-		if [[ $${#f} -gt $$MAX_LEN ]]; then MAX_LEN=$${#f}; fi;
-	done;
-	PER_LINE=$$((`tput cols` / $$(($$MAX_LEN + 2))));
-	CURR=0;
-	touch $(PRINT_FILE);
-	tail -n0 -f $(PRINT_FILE) | while read l;
-	do
-		if [[ $$CURR -ge $$PER_LINE ]]; then CURR=0; echo; fi;
-		CURR=$$(($$CURR + 1));
-		printf "\\033[32m%%-*s\\033[0m  " "$$MAX_LEN" "$$l";
-	done &
-	make -j$(JOBS) $(NAME);
-	STATUS=$$?;
-	kill -9 `jobs -p`;
-	rm -f $(PRINT_FILE);
-	exit $$STATUS
-endef
-export PRINT_SCRIPT
-
 # Default rule (need to be before any include)
-all: $(SUBMODULE_RULES) $(LIBS_RULES)
+all: $(SUBMODULE_RULES) libs_rules
 ifeq ($(COLUMN_OUTPUT),0)
 	make -j$(JOBS) $(NAME)
 else
-	bash -c "$$PRINT_SCRIPT"
+	MAX_LEN=0;														\\
+	for f in $(patsubst $(O_DIR)/%%,%%,$(O_FILES)); do				\\
+		if [[ $${#f} -gt $$MAX_LEN ]]; then MAX_LEN=$${#f}; fi;		\\
+	done;															\\
+	PER_LINE=$$((`tput cols` / $$(($$MAX_LEN + 2))));				\\
+	CURR=0;															\\
+	touch $(PRINT_FILE);											\\
+	tail -n0 -f $(PRINT_FILE) | while read l;						\\
+	do																\\
+		if [[ $$CURR -ge $$PER_LINE ]]; then CURR=0; echo; fi;		\\
+		CURR=$$(($$CURR + 1));										\\
+		printf "\\033[32m%%-*s\\033[0m  " "$$MAX_LEN" "$$l";			\\
+	done &															\\
+	make -j$(JOBS) $(NAME);											\\
+	STATUS=$$?;														\\
+	kill -9 `jobs -p`;												\\
+	rm -f $(PRINT_FILE);											\\
+	exit $$STATUS
 endif
 
 # Include $(O_FILES) and dependencies
 -include $(DEPEND)
+
+libs_rules: $(LIBS_RULES)
 
 # Linking
 $(NAME): $(LINK_DEPENDS) $(O_FILES)
