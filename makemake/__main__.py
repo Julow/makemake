@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/01 10:52:30 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/01 15:32:29 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -184,6 +184,33 @@ def makefile_command(args):
 	else:
 		makefile_generator.gen(config.MAKEFILE_NAME)
 
+# print command
+def set_height(height_map, module, h):
+	height_map[module] = h
+	def loop(l):
+		for m in l:
+			if height_map[m] >= h:
+				set_height(height_map, m, h + 1)
+	loop(module.public_required)
+	loop(module.private_required)
+
+def print_command(args):
+	modules = module_searcher.load()
+	height_map = {}
+	for m in modules:
+		height_map[m] = -1
+	for m in modules:
+		if height_map[m] < 0:
+			set_height(height_map, m, 0)
+	# TODO: check arrows direction
+	by_height = {}
+	for m in modules:
+		if not height_map[m] in by_height:
+			by_height[height_map[m]] = []
+		by_height[height_map[m]].append(m)
+	for h in sorted(by_height, reverse=True):
+		print "%d: %s" % (h, " ".join([m.name for m in by_height[h]]))
+
 COMMANDS = {
 	"list": list_command,
 	"check": check_command,
@@ -193,6 +220,7 @@ COMMANDS = {
 	"put": put_command,
 	"gen": gen_command,
 	"makefile": makefile_command,
+	"print": print_command,
 	"debug": debug_command,
 }
 

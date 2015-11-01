@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>makemake2</title>
+	<style type="text/css">
+
+body
+{
+	margin: 0;
+}
+canvas
+{
+	display: block;
+}
+
+	</style>
+</head>
+<body>
+	<script type="text/javascript">
+
+drawer = (function(modules){
+
+var BORDER_MARGIN = 15;
+var MODULE_WIDTH = 100;
+var MODULE_HEIGHT = 30;
+var MODULE_MARGIN_H = 35;
+var MODULE_MARGIN_V = 60;
+var MODULE_BORDER_COLOR = '#000000';
+var MODULE_TEXT_COLOR = '#000000';
+var MAX_SCALE = 4
+
+var modules_by_name = {};
+var modules_by_height = {};
+var max_height = 0;
+
+for (var i = 0; i < modules.length; i++)
+{
+	var m = modules[i];
+	modules_by_name[m["name"]] = m;
+	if (m["height"] > max_height)
+		max_height = m["height"];
+	if (!modules_by_height[m["height"]])
+		modules_by_height[m["height"]] = [];
+	modules_by_height[m["height"]].push(m);
+}
+
+var graph_width = 0;
+var graph_height = (max_height + 1) * (MODULE_HEIGHT + MODULE_MARGIN_V) - MODULE_MARGIN_V;
+
+for (var i = 0; i <= max_height; i++)
+	if (graph_width < modules_by_height[i].length)
+		graph_width = modules_by_height[i].length;
+graph_width = graph_width * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H;
+
+var canvas_node = document.createElement("canvas");
+canvas_node.width = window.innerWidth;
+canvas_node.height = window.innerHeight;
+document.body.appendChild(canvas_node);
+
+var scale = Math.min(MAX_SCALE, canvas_node.width / (BORDER_MARGIN * 2 + graph_width), canvas_node.height / graph_height);
+
+var offsetX = (canvas_node.width - graph_width) / 2 + BORDER_MARGIN;
+var offsetY = (canvas_node.height - graph_height) / 2 + BORDER_MARGIN;
+
+canvas = canvas_node.getContext("2d");
+
+canvas.scale(scale, scale);
+
+return {
+	draw: function()
+	{
+		var y = Math.ceil((graph_height - ((MODULE_HEIGHT + MODULE_MARGIN_V) * max_height - MODULE_MARGIN_V)) / 2 + offsetY);
+		var x, modules, height, i;
+
+		canvas.clearRect(0, 0, graph_width, graph_height);
+		canvas.textAlign = "center";
+		for (height = max_height; height >= 0; height--)
+		{
+			modules = modules_by_height[height];
+			x = Math.ceil((graph_width - (modules.length * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H)) / 2 + offsetX);
+			for (i = 0; i < modules.length; i++)
+			{
+				canvas.strokeStyle = MODULE_BORDER_COLOR;
+				canvas.strokeRect(x, y, MODULE_WIDTH, MODULE_HEIGHT);
+				canvas.fillStyle = MODULE_TEXT_COLOR;
+				canvas.fillText(modules[i]["name"], MODULE_WIDTH / 2 + x, MODULE_HEIGHT / 2 + y);
+				x += MODULE_WIDTH + MODULE_MARGIN_H;
+			}
+			y += MODULE_HEIGHT + MODULE_MARGIN_V;
+		}
+		canvas.fillRect(offsetX, offsetY, graph_width, graph_height);
+	},
+	getCanvas: function() { return (canvas_node); }
+};
+
+}([
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 0
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 1
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 2
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 3
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 4
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 5
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 6
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 7
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 8
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 9
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 10
+	},
+	{
+		"name": "main",
+		"dep": ["gl", "shader_loader", "texture_loader"],
+		"height": 11
+	},
+	{
+		"name": "shader_loader",
+		"dep": ["gl"],
+		"height": 1
+	},
+	{
+		"name": "texture_loader",
+		"dep": ["gl"],
+		"height": 1
+	},
+	{
+		"name": "gl",
+		"dep": [],
+		"height": 2
+	}
+]));
+
+document.body.appendChild(drawer.getCanvas());
+drawer.draw();
+
+	</script>
+</body>
+</html>

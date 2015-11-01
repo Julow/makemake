@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:46 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/01 10:57:19 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/01 15:29:14 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -50,7 +50,6 @@ def all():
 def resolve_refs(module_list):
 	name_map = {}
 	for m in module_list:
-		print m.name
 		name_map[m.name] = m
 	def resolve_list(l):
 		resolved = []
