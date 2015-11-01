@@ -26,12 +26,13 @@ var MODULE_HEIGHT = 30;
 var MODULE_MARGIN_H = 35;
 var MODULE_MARGIN_V = 60;
 var MODULE_BORDER_COLOR = '#000000';
+var MODULE_FILL_COLOR = '#FFFFFF';
 var MODULE_TEXT_COLOR = '#000000';
-var MAX_SCALE = 4
+var MAX_SCALE = 2;
 
 var modules_by_name = {};
 var modules_by_height = {};
-var max_height = 0;
+var max_height = -1;
 
 for (var i = 0; i < modules.length; i++)
 {
@@ -45,134 +46,68 @@ for (var i = 0; i < modules.length; i++)
 }
 
 var graph_width = 0;
-var graph_height = (max_height + 1) * (MODULE_HEIGHT + MODULE_MARGIN_V) - MODULE_MARGIN_V;
+var graph_height = (max_height + 2) * (MODULE_HEIGHT + MODULE_MARGIN_V) - MODULE_MARGIN_V; // lol
 
 for (var i = 0; i <= max_height; i++)
 	if (graph_width < modules_by_height[i].length)
 		graph_width = modules_by_height[i].length;
 graph_width = graph_width * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H;
 
+var scale, offsetX, offsetY;
+
 var canvas_node = document.createElement("canvas");
-canvas_node.width = window.innerWidth;
-canvas_node.height = window.innerHeight;
+var canvas = canvas_node.getContext("2d");
 document.body.appendChild(canvas_node);
 
-var scale = Math.min(MAX_SCALE, canvas_node.width / (BORDER_MARGIN * 2 + graph_width), canvas_node.height / graph_height);
+function check_winsize()
+{
+	var w = window.innerWidth;
+	var h = window.innerHeight;
 
-var offsetX = (canvas_node.width - graph_width) / 2 + BORDER_MARGIN;
-var offsetY = (canvas_node.height - graph_height) / 2 + BORDER_MARGIN;
+	canvas_node.width = w;
+	canvas_node.height = h;
+	scale = Math.min(MAX_SCALE, w / (BORDER_MARGIN * 2 + graph_width), h / (BORDER_MARGIN * 2 + graph_height));
+	offsetX = (w / scale - graph_width) / 2;
+	offsetY = (h / scale - graph_height) / 2;
+	canvas.scale(scale, scale);
+	draw();
+}
 
-canvas = canvas_node.getContext("2d");
+function draw_modules()
+{
+	var y = Math.ceil((graph_height - ((MODULE_HEIGHT + MODULE_MARGIN_V) * (max_height + 1) - MODULE_MARGIN_V)) / 2 + offsetY);
+	var x, modules, height, i;
 
-canvas.scale(scale, scale);
-
-return {
-	draw: function()
+	canvas.textAlign = "center";
+	for (height = max_height; height >= 0; height--)
 	{
-		var y = Math.ceil((graph_height - ((MODULE_HEIGHT + MODULE_MARGIN_V) * max_height - MODULE_MARGIN_V)) / 2 + offsetY);
-		var x, modules, height, i;
-
-		canvas.clearRect(0, 0, graph_width, graph_height);
-		canvas.textAlign = "center";
-		for (height = max_height; height >= 0; height--)
+		modules = modules_by_height[height];
+		x = Math.ceil((graph_width - (modules.length * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H)) / 2 + offsetX);
+		for (i = 0; i < modules.length; i++)
 		{
-			modules = modules_by_height[height];
-			x = Math.ceil((graph_width - (modules.length * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H)) / 2 + offsetX);
-			for (i = 0; i < modules.length; i++)
-			{
-				canvas.strokeStyle = MODULE_BORDER_COLOR;
-				canvas.strokeRect(x, y, MODULE_WIDTH, MODULE_HEIGHT);
-				canvas.fillStyle = MODULE_TEXT_COLOR;
-				canvas.fillText(modules[i]["name"], MODULE_WIDTH / 2 + x, MODULE_HEIGHT / 2 + y);
-				x += MODULE_WIDTH + MODULE_MARGIN_H;
-			}
-			y += MODULE_HEIGHT + MODULE_MARGIN_V;
+			canvas.strokeStyle = MODULE_BORDER_COLOR;
+			canvas.strokeRect(x, y, MODULE_WIDTH, MODULE_HEIGHT);
+			canvas.fillStyle = MODULE_FILL_COLOR;
+			canvas.fillRect(x, y, MODULE_WIDTH, MODULE_HEIGHT);
+			canvas.fillStyle = MODULE_TEXT_COLOR;
+			canvas.fillText(modules[i]["name"], MODULE_WIDTH / 2 + x, MODULE_HEIGHT / 2 + y);
+			x += MODULE_WIDTH + MODULE_MARGIN_H;
 		}
-		canvas.fillRect(offsetX, offsetY, graph_width, graph_height);
-	},
-	getCanvas: function() { return (canvas_node); }
-};
+		y += MODULE_HEIGHT + MODULE_MARGIN_V;
+	}
+}
+
+function draw()
+{
+	canvas.clearRect(offsetX, offsetY, graph_width, graph_height);
+	draw_modules();
+}
+
+window.addEventListener("resize", check_winsize);
+check_winsize();
 
 }([
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 0
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 1
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 2
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 3
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 4
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 5
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 6
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 7
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 8
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 9
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 10
-	},
-	{
-		"name": "main",
-		"dep": ["gl", "shader_loader", "texture_loader"],
-		"height": 11
-	},
-	{
-		"name": "shader_loader",
-		"dep": ["gl"],
-		"height": 1
-	},
-	{
-		"name": "texture_loader",
-		"dep": ["gl"],
-		"height": 1
-	},
-	{
-		"name": "gl",
-		"dep": [],
-		"height": 2
-	}
 ]));
-
-document.body.appendChild(drawer.getCanvas());
-drawer.draw();
 
 	</script>
 </body>
