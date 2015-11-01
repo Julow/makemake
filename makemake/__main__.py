@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/01 19:15:46 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/01 22:47:04 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -189,7 +189,7 @@ def set_height(height_map, module, h):
 	height_map[module] = h
 	def loop(l):
 		for m in l:
-			if height_map[m] < h:
+			if height_map[m] <= h:
 				set_height(height_map, m, h + 1)
 	loop(module.public_required)
 	loop(module.private_required)

@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/01 19:19:33 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/01 22:46:16 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,15 +19,16 @@ class CheckError(config.BaseError):
 		super(CheckError, self).__init__(err)
 
 #
-def check_include_loop(module_map, module, include_map):
-	include_map[module] = True
+def check_include_loop(module, include_map):
+	include_map[module.name] = True
 	def loop(l):
 		for m in l:
-			if m in include_map and include_map[m]:
-				raise CheckError("Include loop (%s included from %s)" % (m, module))
-	loop(module_map[module].public_required)
-	loop(module_map[module].private_required)
-	include_map[module] = False
+			if m.name in include_map and include_map[m.name]:
+				raise CheckError("Include loop (%s included from %s)" % (m.name, module.name))
+			check_include_loop(m, include_map)
+	loop(module.public_required)
+	loop(module.private_required)
+	include_map[module.name] = False
 
 #
 # Check for errors
@@ -67,5 +68,5 @@ def check(modules):
 			if not r in module_map:
 				raise CheckError("Unknown module '%s' (privately required by '%s')" % (r, m.name))
 	for m in modules:
-		check_include_loop(module_names, m.name, {})
+		check_include_loop(m, {})
 	return True
