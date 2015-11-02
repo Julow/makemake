@@ -1,3 +1,5 @@
+MODULES_MARK = "/* ?modules? */[]"
+HTML = """
 <!DOCTYPE html>
 <html>
 <head>
@@ -208,10 +210,9 @@ function draw()
 window.addEventListener("resize", check_winsize);
 check_winsize();
 
-}(
-//?modules?
-));
+}(""" + MODULES_MARK + """));
 
 	</script>
 </body>
 </html>
+"""

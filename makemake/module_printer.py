@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/11/02 00:29:40 by juloo             #+#    #+#              #
-#    Updated: 2015/11/02 22:54:35 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/02 23:21:24 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,6 +14,7 @@ import config
 import tempfile
 import os
 import json
+from module_print_html import HTML, MODULES_MARK
 
 #
 # Generate an HTML file that render modules
@@ -36,7 +37,7 @@ def gen(modules):
 		}
 	tmp_f, tmp_file = tempfile.mkstemp(".html", "makemake_")
 	with os.fdopen(tmp_f, "w") as f:
-		f.write(config.cat_file('res/module_print.html').replace("//?modules?", json.dumps(module_data.values())))
+		f.write(HTML.replace(MODULES_MARK, json.dumps(module_data.values())))
 	return tmp_file
 
 # Used to sort modules by dependency level
