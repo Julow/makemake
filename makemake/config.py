@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:39:40 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/02 01:11:24 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/02 08:35:37 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,9 +35,6 @@ INCLUDE_FLAGS_VAR = "INCLUDE_FLAGS"
 
 INCLUDE_REG = '^ *# *include *(?:"([^"]+)"|<([^>]+)>)'
 GIT_SUBMODULE_REG = '^\s*path\s*=\s*(.+)$'
-
-HTML_FILE = 'module_print.html'
-HTML_REPLACE = '//?modules?'
 
 class BaseError(Exception):
 
