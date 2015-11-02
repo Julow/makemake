@@ -6,12 +6,13 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/01 22:47:04 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/02 00:40:32 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 from sys import argv, stdout
 import module_searcher
+import module_printer
 import dependency_finder
 import depend_generator
 import makefile_generator
@@ -184,34 +185,8 @@ def makefile_command(args):
 	else:
 		makefile_generator.gen(config.MAKEFILE_NAME)
 
-# print command
-def set_height(height_map, module, h):
-	height_map[module] = h
-	def loop(l):
-		for m in l:
-			if height_map[m] <= h:
-				set_height(height_map, m, h + 1)
-	loop(module.public_required)
-	loop(module.private_required)
-
 def print_command(args):
-	modules = module_searcher.load()
-	height_map = {}
-	for m in modules:
-		height_map[m] = -1
-	for m in modules:
-		if height_map[m] < 0:
-			set_height(height_map, m, 0)
-	# TODO: check arrows direction
-	print ",\n".join(["""{
-	"name": "%(name)s",
-	"dep": [%(dep)s],
-	"height": %(height)d
-}""" % {
-		"name": m.name,
-		"dep": ", ".join(['"%s"' % dep.name for dep in m.public_required + m.private_required]),
-		"height": height_map[m]
-	} for m in modules])
+	print module_printer.gen(module_searcher.load())
 
 COMMANDS = {
 	"list": list_command,

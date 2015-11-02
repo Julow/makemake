@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/11/01 10:10:17 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/01 10:29:36 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/02 01:11:33 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,5 +30,6 @@ setup(
 	author=makemake.__author__,
 	packages=['makemake'],
 	entry_points={'console_scripts': ['makemake2 = makemake.__main__:main']},
+	data_files=[('makemake', ['makemake/module_print.html'])],
 	keywords=['makemake', 'makemake2'],
 )
