@@ -6,13 +6,14 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/11/02 00:29:40 by juloo             #+#    #+#              #
-#    Updated: 2015/11/02 08:34:42 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/02 12:52:32 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import config
 import tempfile
 import os
+import json
 
 HTML_FILE = """<!DOCTYPE html>
 <html>
@@ -223,17 +224,16 @@ def gen(modules):
 		if height_map[m] < 0:
 			_set_height(height_map, m, 0)
 	# TODO: check arrows direction
+	module_data = {}
+	for m in modules:
+		module_data[m.name] = {
+			"name": m.name,
+			"dep": [dep.name for dep in m.public_required + m.private_required],
+			"level": height_map[m]
+		}
 	tmp_f, tmp_file = tempfile.mkstemp(".html", "makemake_")
 	with os.fdopen(tmp_f, "w") as f:
-		f.write(HTML_FILE.replace("//?modules?", ",\n".join(["""\t{
-		"name": "%(name)s",
-		"dep": [%(dep)s],
-		"height": %(height)d
-	}""" % {
-		"name": m.name,
-		"dep": ", ".join(['"%s"' % dep.name for dep in m.public_required + m.private_required]),
-		"height": height_map[m]
-	} for m in modules])))
+		f.write(HTML_FILE.replace("//?modules?", json.dumps(module_data.values())))
 	return tmp_file
 
 # Used to sort modules by dependency level

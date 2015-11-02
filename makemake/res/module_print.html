@@ -23,44 +23,56 @@ drawer = (function(modules){
 var BORDER_MARGIN = 15;
 var MODULE_WIDTH = 100;
 var MODULE_HEIGHT = 30;
-var MODULE_MARGIN_H = 35;
+var MODULE_MARGIN_H = 40;
 var MODULE_MARGIN_V = 60;
 var MODULE_BORDER_WIDTH = 1;
 var MODULE_BORDER_COLOR = '#000000';
 var MODULE_FILL_COLOR = '#FFFFFF';
 var MODULE_TEXT_COLOR = '#000000';
+var ARROW_BASE = 5;
 var ARROW_HEAD_H = 3;
 var ARROW_HEAD_V = 5;
-var ARROW_WIDTH = 1;
-var ARROW_COLOR = '#888888';
+var ARROW_WIDTH = 0.8;
+var ARROW_COLOR = '#444444';
+var DEP_ARROW_COLOR = '#D5D5D5';
 var MAX_SCALE = 2;
 
 var modules_by_name = {};
-var modules_by_height = {};
-var max_height = -1;
+var modules_by_level = {};
+var max_level = -1;
 
+// begin lol
 function for_each(array, func)
 {
 	for (var i = 0; i < array.length; i++)
 		func(array[i]);
 }
 
+function contains(array, obj)
+{
+	for (var i = 0; i < array.length; i++)
+		if (array[i] == obj)
+			return (true);
+	return (false);
+}
+// end lol
+
 for_each(modules, function(m)
 {
 	modules_by_name[m["name"]] = m;
-	if (m["height"] > max_height)
-		max_height = m["height"];
-	if (!modules_by_height[m["height"]])
-		modules_by_height[m["height"]] = [];
-	modules_by_height[m["height"]].push(m);
+	if (m["level"] > max_level)
+		max_level = m["level"];
+	if (!modules_by_level[m["level"]])
+		modules_by_level[m["level"]] = [];
+	modules_by_level[m["level"]].push(m);
 });
 
 var graph_width = 0;
-var graph_height = (max_height + 2) * (MODULE_HEIGHT + MODULE_MARGIN_V) - MODULE_MARGIN_V; // lol
+var graph_height = (max_level + 2) * (MODULE_HEIGHT + MODULE_MARGIN_V) - MODULE_MARGIN_V; // lol
 
-for (var i = 0; i <= max_height; i++)
-	if (graph_width < modules_by_height[i].length)
-		graph_width = modules_by_height[i].length;
+for (var i = 0; i <= max_level; i++)
+	if (graph_width < modules_by_level[i].length)
+		graph_width = modules_by_level[i].length;
 graph_width = graph_width * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H;
 
 var scale, offsetX, offsetY;
@@ -110,48 +122,50 @@ function check_cursor(e)
 
 function update_modules_pos()
 {
-	var y = Math.ceil((graph_height - ((MODULE_HEIGHT + MODULE_MARGIN_V) * (max_height + 1) - MODULE_MARGIN_V)) / 2 + offsetY);
-	var x, modules, height, i;
+	var y = Math.ceil((graph_height - ((MODULE_HEIGHT + MODULE_MARGIN_V) * (max_level + 1) - MODULE_MARGIN_V)) / 2 + offsetY);
+	var x, mods, level, i;
 
-	for (height = max_height; height >= 0; height--)
+	for (level = max_level; level >= 0; level--)
 	{
-		modules = modules_by_height[height];
-		x = Math.ceil((graph_width - (modules.length * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H)) / 2 + offsetX);
-		for (i = 0; i < modules.length; i++)
+		mods = modules_by_level[level];
+		x = Math.ceil((graph_width - (mods.length * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H)) / 2 + offsetX);
+		for (i = 0; i < mods.length; i++)
 		{
-			modules[i]["x"] = x;
-			modules[i]["y"] = y;
+			mods[i]["x"] = x;
+			mods[i]["y"] = y;
 			x += MODULE_WIDTH + MODULE_MARGIN_H;
 		}
 		y += MODULE_HEIGHT + MODULE_MARGIN_V;
 	}
 }
 
-function draw_arrows(module)
+function draw_arrow(from, to, color)
 {
-	var x = module["x"] + (MODULE_WIDTH / 2);
-	var y = module["y"] + (MODULE_HEIGHT / 2);
 	var center_y = MODULE_HEIGHT / 2;
+	var from_x = from["x"] + (MODULE_WIDTH / 2);
+	var from_y = from["y"] + center_y;
+	var to_x = to["x"] + (MODULE_WIDTH / 2);
+	var to_y = to["y"] + center_y;
+	var dist_y = from_y - to_y;
 
+	dist_y /= dist_y / (MODULE_HEIGHT + MODULE_MARGIN_V);
 	canvas.lineWidth = ARROW_WIDTH;
-	canvas.strokeStyle = ARROW_COLOR;
-	for_each(module["dep"], function(dep_name)
-	{
-		var dep = modules_by_name[dep_name];
-		var dep_x = dep["x"] + (MODULE_WIDTH / 2);
-		var dep_y = dep["y"] + center_y;
-		var dist = (y - dep_y);
-
-		dist /= dist / (MODULE_HEIGHT + MODULE_MARGIN_V);
-		canvas.beginPath();
-		canvas.moveTo(dep_x, dep_y + center_y);
-		canvas.bezierCurveTo(dep_x, dep_y + dist, x, y - dist, x, y - center_y);
-		canvas.moveTo(dep_x, dep_y + center_y);
-		canvas.lineTo(dep_x - ARROW_HEAD_H, dep_y + ARROW_HEAD_V + center_y);
-		canvas.moveTo(dep_x, dep_y + center_y);
-		canvas.lineTo(dep_x + ARROW_HEAD_H, dep_y + ARROW_HEAD_V + center_y);
-		canvas.stroke();
-	});
+	canvas.fillStyle = color;
+	canvas.strokeStyle = color;
+	// base
+	canvas.beginPath();
+	canvas.moveTo(from_x, from_y - center_y);
+	canvas.arc(from_x, from_y - center_y, ARROW_BASE / 2, 0, Math.PI * 2);
+	canvas.fill();
+	// curve
+	canvas.moveTo(to_x, to_y + center_y);
+	canvas.bezierCurveTo(to_x, to_y + dist_y, from_x, from_y - dist_y, from_x, from_y - center_y);
+	// arrow
+	canvas.moveTo(to_x, to_y + center_y);
+	canvas.lineTo(to_x - ARROW_HEAD_H, to_y + ARROW_HEAD_V + center_y);
+	canvas.moveTo(to_x, to_y + center_y);
+	canvas.lineTo(to_x + ARROW_HEAD_H, to_y + ARROW_HEAD_V + center_y);
+	canvas.stroke();
 }
 
 function draw_modules()
@@ -160,9 +174,8 @@ function draw_modules()
 
 	canvas.textAlign = "center";
 	canvas.lineJoin = "round";
-	for (i = 0; i < modules.length; i++)
+	for_each(modules, function(module)
 	{
-		module = modules[i];
 		x = module["x"];
 		y = module["y"];
 		canvas.fillStyle = MODULE_FILL_COLOR;
@@ -171,16 +184,25 @@ function draw_modules()
 		canvas.lineWidth = MODULE_BORDER_WIDTH;
 		canvas.strokeRect(x, y, MODULE_WIDTH, MODULE_HEIGHT);
 		canvas.fillStyle = MODULE_TEXT_COLOR;
-		canvas.fillText(modules[i]["name"], MODULE_WIDTH / 2 + x, MODULE_HEIGHT / 2 + y);
-	}
+		canvas.fillText(module["name"], MODULE_WIDTH / 2 + x, MODULE_HEIGHT / 2 + y);
+	});
 }
 
 function draw()
 {
 	canvas.clearRect(offsetX, offsetY, graph_width, graph_height);
-	draw_modules();
 	if (selected_module)
-		draw_arrows(selected_module);
+		for_each(modules, function(m)
+		{
+			if (contains(m["dep"], selected_module["name"]))
+				draw_arrow(m, selected_module, DEP_ARROW_COLOR);
+		});
+	if (selected_module)
+		for_each(selected_module["dep"], function(dep_name)
+		{
+			draw_arrow(selected_module, modules_by_name[dep_name], ARROW_COLOR);
+		});
+	draw_modules();
 }
 
 window.addEventListener("resize", check_winsize);
