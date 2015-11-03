@@ -1,6 +1,5 @@
 MODULES_MARK = "/* ?modules? */[]"
-HTML = """
-<!DOCTYPE html>
+HTML = """<!DOCTYPE html>
 <html>
 <head>
 	<title>makemake2</title>

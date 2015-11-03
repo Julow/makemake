@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/02 00:40:32 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/03 09:36:25 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,6 +18,7 @@ import depend_generator
 import makefile_generator
 import module
 import config
+import utils
 import os
 
 #
@@ -186,7 +187,9 @@ def makefile_command(args):
 		makefile_generator.gen(config.MAKEFILE_NAME)
 
 def print_command(args):
-	print module_printer.gen(module_searcher.load())
+	file_name = module_printer.gen(module_searcher.load())
+	print "Module tree generated to %s" % file_name
+	utils.open_browser(file_name)
 
 COMMANDS = {
 	"list": list_command,
