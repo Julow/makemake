@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/01 10:50:08 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/03 10:42:51 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,11 +29,12 @@ class DependencyMap():
 		self.track_map = {}
 		self.search_dirs = []
 
-	def track(self, file_name):
+	def track(self, file_name, track_stack):
 		if file_name in self.track_map:
 			if self.track_map[file_name] == None:
 				raise config.BaseError("Include loop") # TODO: exception
 			return self.track_map[file_name]
+		track_stack.append(file_name)
 		self.track_map[file_name] = None
 		includes = []
 		for inc in scan(file_name):
@@ -42,7 +43,7 @@ class DependencyMap():
 				inc_abs = os.path.join(d, inc)
 				if os.path.isfile(inc_abs):
 					includes.append(inc_abs)
-					for i in self.track(inc_abs):
+					for i in self.track(inc_abs, track_stack):
 						if not i in includes:
 							includes.append(i)
 					ok = True
@@ -50,10 +51,11 @@ class DependencyMap():
 			 # TODO: relative include
 			 # or TODO: soft error
 			if not ok:
-				raise config.BaseError("Unable to found include '%s' included from '%s'" % (
-					inc, file_name
+				raise config.BaseError("Cannot find '%s' included from module %s" % (
+					inc, " -> ".join([os.path.relpath(i) for i in track_stack])
 				)) # TODO: exception
 		self.track_map[file_name] = includes
+		track_stack.pop()
 		return includes
 
 #
@@ -95,11 +97,11 @@ def get_dirs(module_list, module, private = True):
 #  return a map {source_name: (dependencies, ext data)}
 #
 
-def track_dir(search_dir, public_includes, dep = DependencyMap()):
+def track_dir(module, public_includes, dep = DependencyMap()):
 	sources = {}
 	dep.search_dirs = public_includes
-	for (f, ext_data) in source_finder.find(search_dir):
-		sources[f] = (dep.track(os.path.abspath(f)), ext_data)
+	for (f, ext_data) in source_finder.find(module.base_dir):
+		sources[f] = (dep.track(os.path.abspath(f), [module.name]), ext_data)
 	return sources
 
 #
@@ -114,7 +116,7 @@ def track(modules):
 		if not m.auto_enabled:
 			source_map[m] = {}
 			continue
-		source_map[m] = track_dir(m.base_dir, get_dirs(modules, m), dep)
+		source_map[m] = track_dir(m, get_dirs(modules, m), dep)
 	return source_map
 
 #

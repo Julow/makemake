@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/03 09:36:25 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/03 15:56:37 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -101,9 +101,14 @@ def help_command(args):
 def info_command(args):
 	modules = module_searcher.all()
 	if len(args) > 0:
-		for m in args:
-			if module.get_module(modules, m) == None:
-				raise config.BaseError("Unknow module '%s'" % m) # TODO: exception
+		for m_name in args:
+			ok = False
+			for m in modules:
+				if m.name == m_name:
+					ok = True
+					break
+			if not ok:
+				raise config.BaseError("Unknow module '%s'" % m_name) # TODO: exception
 		arg_modules = []
 		for m in modules:
 			if m.name in args:
@@ -116,9 +121,9 @@ def info_command(args):
 		for i in m.private_includes:
 			print "\tprivate include %s" % os.path.relpath(i)
 		for r in m.public_required:
-			print "\tpublic require %s" % r.name
+			print "\tpublic require %s" % r
 		for r in m.private_required:
-			print "\tprivate require %s" % r.name
+			print "\tprivate require %s" % r
 		for p in m.to_put:
 			print "\tput %s %s" % (p, " ".join(m.to_put[p]))
 		for l in m.locals:
@@ -149,14 +154,18 @@ def dep_command(args):
 		for m in modules:
 			show_dep(m, source_map[m])
 	else:
-		for m in args:
-			tmp = module.get_module(modules, m)
+		for m_name in args:
+			tmp = None
+			for m in modules:
+				if m.name == m_name:
+					tmp = m
+					break
 			if tmp == None:
-				raise config.BaseError("Unknow module '%s'" % m) # TODO: exception
+				raise config.BaseError("Unknow module '%s'" % m_name) # TODO: exception
 			if tmp in source_map:
 				show_dep(tmp, source_map[tmp])
 			else:
-				raise config.BaseError("WTF happen with module '%s'" % m)
+				raise config.BaseError("WTF happen with module '%s'" % m_name)
 
 def put_command(args):
 	put = {}
@@ -206,6 +215,7 @@ COMMANDS = {
 
 def main():
 	try:
+		argv[0] = "makemake" # because fuck
 		if len(argv) > 1:
 			if argv[1] in COMMANDS:
 				try:

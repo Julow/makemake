@@ -30,11 +30,13 @@ var MODULE_BORDER_WIDTH = 1;
 var MODULE_BORDER_COLOR = '#000000';
 var MODULE_FILL_COLOR = '#FFFFFF';
 var MODULE_TEXT_COLOR = '#000000';
+var MODULE_TEXT_FONT = '12px Verdana,sans-serif';
 var ARROW_BASE = 5;
 var ARROW_HEAD_H = 3;
 var ARROW_HEAD_V = 5;
 var ARROW_WIDTH = 0.8;
 var ARROW_COLOR = '#444444';
+var UNSELECT_ARROW_COLOR = '#F0F0F0';
 var DEP_ARROW_COLOR = '#D5D5D5';
 var MAX_SCALE = 2;
 
@@ -185,6 +187,7 @@ function draw_modules()
 		canvas.lineWidth = MODULE_BORDER_WIDTH;
 		canvas.strokeRect(x, y, MODULE_WIDTH, MODULE_HEIGHT);
 		canvas.fillStyle = MODULE_TEXT_COLOR;
+		canvas.font = MODULE_TEXT_FONT;
 		canvas.fillText(module["name"], MODULE_WIDTH / 2 + x, MODULE_HEIGHT / 2 + y);
 	});
 }
@@ -192,17 +195,24 @@ function draw_modules()
 function draw()
 {
 	canvas.clearRect(offsetX, offsetY, graph_width, graph_height);
+	function draw_arrow_of_dep(module, color)
+	{
+		for_each(module["dep"], function(dep_name)
+		{
+			draw_arrow(module, modules_by_name[dep_name], color);
+		});
+	};
 	if (selected_module)
+	{
 		for_each(modules, function(m)
 		{
 			if (contains(m["dep"], selected_module["name"]))
 				draw_arrow(m, selected_module, DEP_ARROW_COLOR);
 		});
-	if (selected_module)
-		for_each(selected_module["dep"], function(dep_name)
-		{
-			draw_arrow(selected_module, modules_by_name[dep_name], ARROW_COLOR);
-		});
+		draw_arrow_of_dep(selected_module, ARROW_COLOR);
+	}
+	else
+		for_each(modules, function(m) { draw_arrow_of_dep(m, UNSELECT_ARROW_COLOR); });
 	draw_modules();
 }
 
