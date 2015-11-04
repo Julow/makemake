@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/03 15:56:37 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/05 00:33:43 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,10 +26,9 @@ import os
 #
 
 #
-# TODO:
-# ?path? for full relative path (in module file)
-# public local instruction
-# override default recipe (possible ??)
+# TODO: ?path? for full relative path (in module file)
+# TODO: public local instruction
+# TODO: check for ununsed dependency
 #
 
 def list_command(args):
@@ -130,12 +129,8 @@ def info_command(args):
 			print "\tlocal %s" % l
 		if not m.auto_enabled:
 			print "\tdisable auto"
-		for r in m.defaultRecipes:
-			print "\trecipe %s" % r
-		for t in m.targets:
-			print "\ttarget %s" % t[0]
-			for r in t[1]:
-				print "\trecipe %s" % r
+		for (i, c) in m.mk_imports:
+			print "\tmakefile %s %s" % ("import" if c else "include", os.path.relpath(i))
 		print ""
 
 # dep command

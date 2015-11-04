@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/01 10:59:50 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/05 00:34:23 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,7 +36,7 @@ def out(out, modules, source_map):
 	out_puts(out, modules, {"O_FILES": obj_file_list})
 	for m in modules:
 		out.write("\n# module %s\n" % m.name)
-		out_targets(out, m)
+		out_mk_imports(out, m)
 		out_autos(out, modules, m, source_map[m], obj_files[m])
 
 #
@@ -62,12 +62,13 @@ def out_puts(out, modules, extra):
 		print_file_list(out, p, len(prefix), "\t", " ", " \\")
 		out.write("\n")
 
-def out_targets(out, module):
-	for target in module.targets:
-		out.write(target[0])
-		out.write("\n")
-		for r in target[1]:
-			out.write("\t%s\n" % r)
+def out_mk_imports(out, module):
+	for file_name, copy in module.mk_imports:
+		if copy:
+			with open(file_name) as f:
+				out.write(f.read())
+		else:
+			out.write("include %s" % os.path.relpath(file_name))
 
 def out_autos(out, module_list, module, sources, obj_files):
 	for o_file in sorted(obj_files.keys()):
@@ -84,7 +85,7 @@ def out_autos(out, module_list, module, sources, obj_files):
 
 def out_head_flags(out, module_list, module, o_file):
 	prefix = "%s: %s +=" % (o_file, config.INCLUDE_FLAGS_VAR)
-	incs = ["-I" + os.path.relpath(i) for i in sorted(dependency_finder.get_dirs(module_list, module))] # TODO opti
+	incs = ["-I" + os.path.relpath(i) for i in sorted(dependency_finder.get_dirs(module_list, module))] # TODO opti get_dirs
 	out.write(prefix)
 	print_file_list(out, incs, len(prefix), "\t", " ", " \\")
 	out.write("\n")

@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/01 22:46:16 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/05 00:28:16 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -59,6 +59,11 @@ def check(modules):
 					raise CheckError("Modules '%s' and '%s' include the same dir (%s)" % (
 						m.name, checked_module.name, i
 					))
+		for inc, _ in m.mk_imports:
+			if not os.path.isfile(inc):
+				raise CheckError("File '%s' %s (included from module %s)" % (
+					inc, "is not a valid file" if os.path.exists(inc) else "does not exists", m.name
+				))
 		checked.append(m)
 	for m in modules:
 		for r in m.public_required:

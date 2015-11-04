@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/01 11:00:13 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/05 00:20:00 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,13 +29,11 @@ class Module():
 		self.to_put = {}
 		self.locals = []
 		self.auto_enabled = True
-		self.defaultRecipes = []
-		self.targets = []
+		self.mk_imports = []
 
 	def include(self, dirs, public):
 		for d in dirs:
-			if not d.startswith("/"):
-				d = os.path.join(self.base_dir, d)
+			d = os.path.join(self.base_dir, d)
 			if public:
 				if not d in self.public_includes:
 					self.public_includes.append(d)
@@ -67,14 +65,8 @@ class Module():
 		else:
 			raise "Cannot disable %s" % key
 
-	def recipe(self, code):
-		if len(self.targets) == 0:
-			self.defaultRecipes.append(code)
-		else:
-			self.targets[-1][1].append(code)
-
-	def target(self, code):
-		self.targets.append((code, []))
+	def mk_import(self, file_name, copy):
+		self.mk_imports.append((os.path.join(self.base_dir, file_name), copy))
 
 #
 # Concat all 'put' values

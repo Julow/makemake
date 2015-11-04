@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/11/02 00:29:40 by juloo             #+#    #+#              #
-#    Updated: 2015/11/02 23:21:24 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/05 00:34:47 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,7 +27,6 @@ def gen(modules):
 	for m in modules:
 		if height_map[m] < 0:
 			_set_height(height_map, m, 0)
-	# TODO: check arrows direction
 	module_data = {}
 	for m in modules:
 		module_data[m.name] = {
