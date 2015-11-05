@@ -6,12 +6,13 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/05 00:28:16 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/05 19:31:34 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
 import config
+import utils
 
 class CheckError(config.BaseError):
 
@@ -24,7 +25,7 @@ def check_include_loop(module, include_map):
 	def loop(l):
 		for m in l:
 			if m.name in include_map and include_map[m.name]:
-				raise CheckError("Include loop (%s included from %s)" % (m.name, module.name))
+				raise CheckError("Include loop ('%s' included from '%s')" % (m.name, module.name))
 			check_include_loop(m, include_map)
 	loop(module.public_required)
 	loop(module.private_required)
@@ -39,39 +40,49 @@ def check(modules):
 	checked = []
 	module_names = {}
 	module_map = {}
-	for m in modules:
-		if m.name in module_names:
-			raise CheckError("Module '%s' redefined" % m.name)
-		module_names[m.name] = m
-		module_map[m] = True
-		if not os.path.isdir(m.base_dir):
-			raise CheckError("Invalid base dir for module '%s' (%s)" % (m.name, m.base_dir))
-		for i in m.public_includes:
+	main_module = None
+	for module in modules:
+		if module.name in module_names:
+			raise CheckError("Module '%s' redefined" % module.name)
+		module_names[module.name] = module
+		module_map[module] = True
+		if not os.path.isdir(module.base_dir):
+			raise CheckError("Invalid base dir for module '%s' (%s)" % (module.name, module.base_dir))
+		for i in module.public_includes:
 			if not os.path.isdir(i):
-				raise CheckError("Invalid include for module '%s' (%s)" % (m.name, i))
+				raise CheckError("Invalid include for module '%s' (%s)" % (module.name, i))
 		for checked_module in checked:
-			if m.base_dir == checked_module.base_dir:
+			if module.base_dir == checked_module.base_dir:
 				raise CheckError("Modules '%s' and '%s' have the same dir (%s)" % (
-					m.name, checked_module.name, m.base_dir
+					module.name, checked_module.name, module.base_dir
 				))
-			for i in m.public_includes:
+			for i in module.public_includes:
 				if i in checked_module.public_includes:
 					raise CheckError("Modules '%s' and '%s' include the same dir (%s)" % (
-						m.name, checked_module.name, i
+						module.name, checked_module.name, i
 					))
-		for inc, _ in m.mk_imports:
+		for inc, _ in module.mk_imports:
 			if not os.path.isfile(inc):
 				raise CheckError("File '%s' %s (included from module %s)" % (
-					inc, "is not a valid file" if os.path.exists(inc) else "does not exists", m.name
+					inc, "is not a valid file" if os.path.exists(inc) else "does not exists", module.name
 				))
-		checked.append(m)
-	for m in modules:
-		for r in m.public_required:
-			if not r in module_map:
-				raise CheckError("Unknown module '%s' (publicly required by '%s')" % (r, m.name))
-		for r in m.private_required:
-			if not r in module_map:
-				raise CheckError("Unknown module '%s' (privately required by '%s')" % (r, m.name))
-	for m in modules:
-		check_include_loop(m, {})
+		if module.is_main:
+			if main_module == None:
+				main_module = module
+			else:
+				raise CheckError("Too many main modules (%s)" % ", ".join([m.name for m in modules if m.is_main]))
+		checked.append(module)
+	if main_module == None:
+		raise CheckError("Main module missing")
+	for module in modules:
+		def check_dep(lst):
+			for r in lst:
+				if r.is_main:
+					if len(r.public_required):
+						utils.warn("Main module '%s' should not have public require" % r.name)
+					utils.warn("Main module '%s' should be the root module (required by %s) (it'll cause an include loop)" % (r.name, module.name))
+		check_dep(module.public_required)
+		check_dep(module.private_required)
+	for module in modules:
+		check_include_loop(module, {})
 	return True

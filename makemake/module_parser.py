@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/05 00:19:33 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/05 18:15:54 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -102,7 +102,7 @@ def parse(file_name):
 					continue
 				words = line.split()
 				visiblity = config.DEFAULT_VISIBILITY
-				if words[0] in ["public", "private"]:
+				if words[0] in ["main", "public", "private"]:
 					visiblity = words[0]
 					words = words[1:]
 					if len(words) == 0:
@@ -114,7 +114,10 @@ def parse(file_name):
 						words[1] = words[1][:-1]
 					rel = os.path.relpath(words[2] if len(words) == 3 else ".")
 					current_module = module.Module(words[1], os.path.abspath(os.path.join(os.path.dirname(file_name), rel)))
+					current_module.is_main = visiblity == "main"
 					modules.append(current_module)
+				elif visiblity == "main":
+					raise ParserError("'main' visiblity is for module declaration")
 				elif words[0] in MODULE_INSTRUCTIONS:
 					instr = MODULE_INSTRUCTIONS[words[0]]
 					args = words[1:]

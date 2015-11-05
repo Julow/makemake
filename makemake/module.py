@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/05 00:20:00 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/05 18:10:18 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,6 +30,8 @@ class Module():
 		self.locals = []
 		self.auto_enabled = True
 		self.mk_imports = []
+
+		self.is_main = False
 
 	def include(self, dirs, public):
 		for d in dirs:

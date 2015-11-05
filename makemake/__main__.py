@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/05 00:33:43 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/05 19:29:06 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,17 +32,24 @@ import os
 #
 
 def list_command(args):
-	modules = module_searcher.all()
+	modules = module_searcher.parse_all()
+	used_map = {}
+	used_modules = module_searcher.filter_unused(modules)
+	for m in used_modules:
+		used_map[m.name] = True
 	if len(modules) == 0:
 		print "No module found"
 	else:
-		print "%d modules:" % len(modules)
+		print "%d \033[90m(+%d unused)\033[0m modules:" % (len(used_modules), len(modules) - len(used_modules))
 		max_len = 0
 		for m in modules:
 			if len(m.name) > max_len:
 				max_len = len(m.name)
-		for m in modules:
-			print "\t%-*s (%s)" % (max_len, m.name, os.path.relpath(m.base_dir))
+		for m in sorted(modules, key=lambda m: (m.name in used_map, m.name)):
+			f = "%-*s (%s)"
+			print ("\t%s" if m.name in used_map else "\t\033[90m%s\033[0m") % f % (
+				max_len, m.name, os.path.relpath(m.base_dir)
+			)
 
 def check_command(args):
 	modules = module_searcher.load()
@@ -213,10 +220,7 @@ def main():
 		argv[0] = "makemake" # because fuck
 		if len(argv) > 1:
 			if argv[1] in COMMANDS:
-				try:
-					COMMANDS[argv[1]](argv[2:])
-				except config.BaseError as e:
-					raise config.BaseError("%s: %s" % (argv[1], str(e)))
+				COMMANDS[argv[1]](argv[2:])
 			else:
 				raise config.BaseError("Unknow command '%s'" % argv[1]) # TODO: exception
 		else:
@@ -224,7 +228,7 @@ def main():
 			print "Type '%s help' for help" % argv[0]
 			return 2
 	except config.BaseError as e:
-		print "%s: Error: %s" % (argv[0], str(e))
+		print "\033[31mError:\033[0m %s" % str(e)
 		return 1
 	except Exception as e:
 		raise

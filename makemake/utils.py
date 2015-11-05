@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/11/03 09:35:59 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/03 09:36:36 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/05 19:24:50 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,3 +19,6 @@ def open_browser(url):
 		subprocess.Popen(['open', url])
 	else:
 		webbrowser.open(url, 0, True)
+
+def warn(msg):
+	print "\033[33mWarning:\033[0m %s" % msg
