@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/05 20:13:36 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/06 00:21:53 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,7 +46,7 @@ class DependencyMap():
 					if included_dirs != None:
 						included_dirs.append(d)
 					includes.append(inc_abs)
-					for i in self.track(inc_abs, track_stack):
+					for i in self.track(inc_abs, track_stack, included_dirs):
 						if not i in includes:
 							includes.append(i)
 					ok = True
@@ -99,13 +99,13 @@ def get_dirs(module_list, module, private = True):
 #  return a map {source_name: (dependencies, ext data)}
 #
 
-def track_dir(module, public_includes, dep = None, included_dir = None):
+def track_dir(module, public_includes, dep = None, included_dirs = None):
 	sources = {}
 	if dep == None:
 		dep = DependencyMap()
 	dep.search_dirs = public_includes
 	for (f, ext_data) in source_finder.find(module.base_dir):
-		sources[f] = (dep.track(os.path.abspath(f), [module.name], included_dir), ext_data)
+		sources[f] = (dep.track(os.path.abspath(f), [module.name], included_dirs), ext_data)
 	return sources
 
 #
@@ -120,19 +120,32 @@ def track(modules):
 		if not m.auto_enabled:
 			source_map[m] = {}
 			continue
-		included_dir = []
-		source_map[m] = track_dir(m, get_dirs(modules, m), dep_map, included_dir)
-		def check_useless_dep(lst):
-			for dep in lst:
-				ok = False
-				for d in dep.public_includes:
-					if d in included_dir:
-						ok = True
-						break
-				if not ok:
-					utils.warn("Module %s: Useless dependency '%s'" % (m.name, dep.name))
-		check_useless_dep(m.public_required)
-		check_useless_dep(m.private_required)
+		included_dirs = []
+		source_map[m] = track_dir(m, get_dirs(modules, m), dep_map, included_dirs)
+		for dep in m.private_required:
+			ok = False
+			for d in dep.public_includes:
+				if d in included_dirs:
+					ok = True
+					break
+			if not ok:
+				utils.warn("Module %s: Useless private dependency '%s'" % (m.name, dep.name))
+		included_dirs = []
+		for file_name, ext in source_finder.find(m.base_dir, False, True):
+			for inc in scan(file_name):
+				for dep in m.public_required + m.private_required:
+					for d in dep.public_includes:
+						tmp = os.path.join(d, inc)
+						if os.path.isfile(tmp):
+							included_dirs.append(d)
+		for dep in m.public_required:
+			ok = False
+			for d in dep.public_includes:
+				if d in included_dirs:
+					ok = True
+					break
+			if not ok:
+				utils.warn("Module %s: Useless public dependency '%s'" % (m.name, dep.name))
 	return source_map
 
 #

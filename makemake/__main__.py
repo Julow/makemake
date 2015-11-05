@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/05 19:29:06 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/06 00:22:04 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,7 +28,7 @@ import os
 #
 # TODO: ?path? for full relative path (in module file)
 # TODO: public local instruction
-# TODO: check for ununsed dependency
+# TODO: cache scan, get_dirs, find calls
 #
 
 def list_command(args):
