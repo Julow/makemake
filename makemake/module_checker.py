@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/07 00:06:49 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/07 12:18:42 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ class CheckError(config.BaseError):
 	def __init__(self, err):
 		super(CheckError, self).__init__(err)
 
-#
+# TODO: ordered_set
 def check_include_loop(module, include_stack):
 	include_stack.append(module.name)
 	def loop(l):

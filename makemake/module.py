@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/07 01:41:34 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/07 13:06:34 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,7 @@ class Module():
 
 		# Module definitions
 		self.name = module_name
-		self.base_dir = base_dir
+		self.base_dir = os.path.abspath(base_dir)
 		self.public_includes = []
 		self.private_includes = []
 		self.public_required = []
@@ -45,6 +45,7 @@ class Module():
 
 		self._included_dirs = None
 		self._included_private = False
+		self._private_dirs = None
 
 	# Return a list of source file
 	def source_files(self):
@@ -72,7 +73,18 @@ class Module():
 				self._include_map[file_name] = included
 		return self._include_map
 
+	# Return a list of direct included dirs [(module, dir)]
+	def private_dirs(self):
+		if self._private_dirs == None:
+			self._private_dirs = []
+			self._private_dirs += [(self, i) for i in self.public_includes]
+			self._private_dirs += [(self, i) for i in self.private_includes]
+			for m in self.public_required + self.private_required:
+				self._private_dirs += [(m, i) for i in m.public_includes]
+		return self._private_dirs
+
 	# Return a list of recursively included dirs [(module, dir)]
+	# TODO: private does not WORK ! this is shit
 	def included_dirs(self, private = True):
 		def helper(required, includes):
 			self._included_dirs += [(self, i) for i in includes]
@@ -93,17 +105,22 @@ class Module():
 		self._source_files = []
 		self._header_files = []
 		for curr_dir, dirs, ls in os.walk(self.base_dir):
-			if os.path.basename(curr_dir) in config.EXCLUDE_DIRS:
+			if os.path.basename(curr_dir) in config.EXCLUDE_DIRS or curr_dir in self.public_includes:
 				del dirs[:]
 			else:
 				for file_name in ls:
 					for ext in config.EXTENSIONS:
 						if file_name.endswith(ext["ext"]):
-							file_name = os.path.join(curr_dir, file_name)
-							if not ext["is_source"]:
-								self._header_files.append((file_name, ext))
-							elif self.auto_enabled:
-								self._source_files.append((file_name, ext))
+							self._source_files.append((os.path.join(curr_dir, file_name), ext))
+		for inc_dir in self.public_includes:
+			for curr_dir, dirs, ls, in os.walk(inc_dir):
+				if os.path.basename(curr_dir) in config.EXCLUDE_DIRS:
+					del dirs[:]
+				else:
+					for file_name in ls:
+						for ext in config.EXTENSIONS:
+							if file_name.endswith(ext["ext"]):
+								self._header_files.append((os.path.join(curr_dir, file_name), ext))
 
 	#
 	# instructions
@@ -111,7 +128,7 @@ class Module():
 
 	def include(self, dirs, public):
 		for d in dirs:
-			d = os.path.join(self.base_dir, d)
+			d = os.path.abspath(os.path.join(self.base_dir, d))
 			if public:
 				if not d in self.public_includes:
 					self.public_includes.append(d)
