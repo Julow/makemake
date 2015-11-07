@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/05 19:31:34 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/07 00:06:49 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,16 +20,18 @@ class CheckError(config.BaseError):
 		super(CheckError, self).__init__(err)
 
 #
-def check_include_loop(module, include_map):
-	include_map[module.name] = True
+def check_include_loop(module, include_stack):
+	include_stack.append(module.name)
 	def loop(l):
 		for m in l:
-			if m.name in include_map and include_map[m.name]:
-				raise CheckError("Include loop ('%s' included from '%s')" % (m.name, module.name))
-			check_include_loop(m, include_map)
+			if m.name in include_stack:
+				raise CheckError("Include loop: %s --> %s" % (
+					" --> ".join(include_stack), m.name
+				))
+			check_include_loop(m, include_stack)
 	loop(module.public_required)
 	loop(module.private_required)
-	include_map[module.name] = False
+	include_stack.pop()
 
 #
 # Check for errors
@@ -78,11 +80,9 @@ def check(modules):
 		def check_dep(lst):
 			for r in lst:
 				if r.is_main:
-					if len(r.public_required):
-						utils.warn("Main module '%s' should not have public require" % r.name)
-					utils.warn("Main module '%s' should be the root module (required by %s) (it'll cause an include loop)" % (r.name, module.name))
+					utils.warn("Main module %s: Should be the root module (required by %s) (it'll cause an include loop)" % (r.name, module.name))
 		check_dep(module.public_required)
 		check_dep(module.private_required)
 	for module in modules:
-		check_include_loop(module, {})
+		check_include_loop(module, [])
 	return True

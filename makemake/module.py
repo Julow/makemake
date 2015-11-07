@@ -6,12 +6,15 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/05 18:10:18 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/07 01:41:34 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
+import re
 import config
+
+INCLUDE_REG = re.compile(config.INCLUDE_REG)
 
 #
 # Represent a module
@@ -20,6 +23,7 @@ class Module():
 
 	def __init__(self, module_name, base_dir):
 
+		# Module definitions
 		self.name = module_name
 		self.base_dir = base_dir
 		self.public_includes = []
@@ -32,6 +36,78 @@ class Module():
 		self.mk_imports = []
 
 		self.is_main = False
+
+		# -
+		self._source_files = None
+		self._header_files = None
+
+		self._include_map = None
+
+		self._included_dirs = None
+		self._included_private = False
+
+	# Return a list of source file
+	def source_files(self):
+		if self._source_files == None:
+			self._find_file()
+		return self._source_files
+
+	# Return a list of header file
+	def header_files(self):
+		if self._header_files == None:
+			self._find_file()
+		return self._header_files
+
+	# Return a list of directly included files {file_name: [includes]}
+	def include_map(self):
+		if self._include_map == None:
+			self._include_map = {}
+			for file_name, _ in self.source_files() + self.header_files():
+				included = []
+				with open(file_name, "r") as f:
+					for line in f:
+						m = INCLUDE_REG.match(line)
+						if m != None and m.group(1) != None:
+							included.append(m.group(1))
+				self._include_map[file_name] = included
+		return self._include_map
+
+	# Return a list of recursively included dirs [(module, dir)]
+	def included_dirs(self, private = True):
+		def helper(required, includes):
+			self._included_dirs += [(self, i) for i in includes]
+			for r in required:
+				for d in r.included_dirs(False):
+					if not d in self._included_dirs:
+						self._included_dirs.append(d)
+		if self._included_dirs == None:
+			self._included_dirs = []
+			helper(self.public_required, self.public_includes)
+		if private and not self._included_private:
+			helper(self.private_required, self.private_includes)
+			self._included_private = True
+		return self._included_dirs
+
+	# load source_files and header_files
+	def _find_file(self):
+		self._source_files = []
+		self._header_files = []
+		for curr_dir, dirs, ls in os.walk(self.base_dir):
+			if os.path.basename(curr_dir) in config.EXCLUDE_DIRS:
+				del dirs[:]
+			else:
+				for file_name in ls:
+					for ext in config.EXTENSIONS:
+						if file_name.endswith(ext["ext"]):
+							file_name = os.path.join(curr_dir, file_name)
+							if not ext["is_source"]:
+								self._header_files.append((file_name, ext))
+							elif self.auto_enabled:
+								self._source_files.append((file_name, ext))
+
+	#
+	# instructions
+	#
 
 	def include(self, dirs, public):
 		for d in dirs:
@@ -69,6 +145,19 @@ class Module():
 
 	def mk_import(self, file_name, copy):
 		self.mk_imports.append((os.path.join(self.base_dir, file_name), copy))
+
+#
+# Check if 'file_name' exists in a dir of 'dir_list'
+# 'dir_list' is a list of tuple (dir_name, data)
+# Return a full path and the corresponding data or None if not found
+#
+
+def _source_in_dirs(file_name, dir_list):
+	for dir_name, data in dir_list:
+		tmp = os.path.join(dir_name, file_name)
+		if os.path.isfile(tmp):
+			return (tmp, data)
+	return None
 
 #
 # Concat all 'put' values

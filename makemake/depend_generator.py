@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/05 00:34:23 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/07 01:45:54 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,7 @@ def gen(file_name, modules, source_map):
 def out(out, modules, source_map):
 	obj_files = {}
 	obj_file_list = []
-	for m in modules:
+	for m in sorted(modules, key=lambda m: m.name):
 		o = get_obj_files(source_map[m])
 		obj_file_list += sorted(o.keys())
 		obj_files[m] = o
@@ -44,6 +44,8 @@ def out(out, modules, source_map):
 def get_obj_files(sources):
 	obj_files = {}
 	for s in sources:
+		if not sources[s][1]["is_source"]:
+			continue
 		o = s[:-len(sources[s][1]["ext"])] + sources[s][1]["obj_ext"]
 		o = os.path.join(config.OBJ_DIR, os.path.relpath(o))
 		obj_files[o] = s
@@ -85,7 +87,7 @@ def out_autos(out, module_list, module, sources, obj_files):
 
 def out_head_flags(out, module_list, module, o_file):
 	prefix = "%s: %s +=" % (o_file, config.INCLUDE_FLAGS_VAR)
-	incs = ["-I" + os.path.relpath(i) for i in sorted(dependency_finder.get_dirs(module_list, module))] # TODO opti get_dirs
+	incs = ["-I" + os.path.relpath(i) for _, i in sorted(module.included_dirs())]
 	out.write(prefix)
 	print_file_list(out, incs, len(prefix), "\t", " ", " \\")
 	out.write("\n")

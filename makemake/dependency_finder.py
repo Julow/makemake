@@ -6,146 +6,82 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/06 00:21:53 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/07 00:14:29 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import config
-import re
 import os
-import source_finder
 import module
 import utils
 
-INCLUDE_REG = re.compile(config.INCLUDE_REG)
-
 #
-# Class used to build a list of dependency
+# Find dependencies for a file
 #
-
-class DependencyMap():
-
-	def __init__(self):
-
-		self.track_map = {}
-		self.search_dirs = []
-
-	def track(self, file_name, track_stack, included_dirs = None):
-		if file_name in self.track_map:
-			if self.track_map[file_name] == None:
-				raise config.BaseError("Include loop") # TODO: exception
-			return self.track_map[file_name]
-		track_stack.append(file_name)
-		self.track_map[file_name] = None
-		includes = []
-		for inc in scan(file_name):
-			ok = False
-			for d in self.search_dirs:
-				inc_abs = os.path.join(d, inc)
-				if os.path.isfile(inc_abs):
-					if included_dirs != None:
-						included_dirs.append(d)
-					includes.append(inc_abs)
-					for i in self.track(inc_abs, track_stack, included_dirs):
-						if not i in includes:
-							includes.append(i)
-					ok = True
+def track_file(file_name, include_map, module_dirs, included_dirs, include_stack):
+	dependencies = []
+	include_stack.append(file_name)
+	for inc in include_map[file_name]:
+		ok = False
+		for module, inc_dir in module_dirs:
+			abs_header = os.path.abspath(os.path.join(inc_dir, inc))
+			if os.path.isfile(abs_header):
+				ok = True
+				dependencies.append(abs_header)
+				included_dirs.append(inc_dir)
+				if not abs_header in module.include_map():
+					utils.warn("Unknown file '%s' of module %s (included from '%s')" % (abs_header, module.name, file_name))
 					break
-			 # TODO: relative include
-			 # or TODO: soft error
-			if not ok:
-				raise config.BaseError("Cannot find '%s' included from module %s" % (
-					inc, " -> ".join([os.path.relpath(i) for i in track_stack])
-				)) # TODO: exception
-		self.track_map[file_name] = includes
-		track_stack.pop()
-		return includes
+				if abs_header in include_stack:
+					raise config.BaseError("File include loop ('%s' included by '%s')" % (
+						os.path.relpath(abs_header), " --> ".join([os.path.relpath(i) for i in include_stack])))
+				for dep in track_file(abs_header, module.include_map(), module_dirs, included_dirs, include_stack):
+					if not dep in dependencies:
+						dependencies.append(dep)
+				break
+		if not ok:
+			raise config.BaseError("Cannot found %s" % inc)
+	include_stack.pop()
+	return dependencies
 
 #
-# Return a list of included file
+# Build dependencies for all files of a module
 #
-
-def scan(file_name):
-	included = []
-	with open(file_name, "r") as f:
-		for line in f:
-			m = INCLUDE_REG.match(line)
-			if m != None and m.group(1) != None:
-				included.append(m.group(1))
-	return included
-
-#
-# Look recursively for required modules's include directories
-#
-
-def get_dirs(module_list, module, private = True):
-	dirs = list(module.public_includes)
-	module_list = list(module_list)
-	module_list.remove(module)
-	for r in module.public_required:
-		for d in get_dirs(module_list, r, False):
-			if not d in dirs:
-				dirs.append(d)
-	if private:
-		dirs += module.private_includes
-		for r in module.private_required:
-			for d in get_dirs(module_list, r, False):
-				if not d in dirs:
-					dirs.append(d)
-	return dirs
+def track_module(module):
+	dependency_map = {}
+	dirs = module.included_dirs()
+	included_dirs = []
+	for source, ext in module.source_files():
+		dependency_map[source] = (track_file(source, module.include_map(), dirs, included_dirs, []), ext)
+	for dep in module.private_required:
+		ok = False
+		for d in dep.public_includes:
+			if d in included_dirs:
+				ok = True
+				break
+		if not ok:
+			utils.warn("Module %s: Useless dependency '%s'" % (module.name, dep.name))
+	included_dirs = []
+	for header, ext in module.header_files():
+		dependency_map[header] = (track_file(header, module.include_map(), dirs, included_dirs, []), ext)
+	for dep in module.public_required:
+		ok = False
+		for d in dep.public_includes:
+			if d in included_dirs:
+				ok = True
+				break
+		if not ok:
+			utils.warn("Module %s: Dependency '%s' should be private" % (module.name, dep.name))
+	return dependency_map
 
 #
-# Search source files and their dependencies
-#  return a map {source_name: (dependencies, ext data)}
+# Call track_module for each module and return a map {module: ({file_name: [dependencies]}, ext_data)}
 #
-
-def track_dir(module, public_includes, dep = None, included_dirs = None):
-	sources = {}
-	if dep == None:
-		dep = DependencyMap()
-	dep.search_dirs = public_includes
-	for (f, ext_data) in source_finder.find(module.base_dir):
-		sources[f] = (dep.track(os.path.abspath(f), [module.name], included_dirs), ext_data)
-	return sources
-
-#
-# It's like using track_dir and get_dirs together
-#  return a map {module: track_dir()}
-#
-
 def track(modules):
-	source_map = {}
-	dep_map = DependencyMap()
+	m_dependency_map = {}
 	for m in modules:
-		if not m.auto_enabled:
-			source_map[m] = {}
-			continue
-		included_dirs = []
-		source_map[m] = track_dir(m, get_dirs(modules, m), dep_map, included_dirs)
-		for dep in m.private_required:
-			ok = False
-			for d in dep.public_includes:
-				if d in included_dirs:
-					ok = True
-					break
-			if not ok:
-				utils.warn("Module %s: Useless private dependency '%s'" % (m.name, dep.name))
-		included_dirs = []
-		for file_name, ext in source_finder.find(m.base_dir, False, True):
-			for inc in scan(file_name):
-				for dep in m.public_required + m.private_required:
-					for d in dep.public_includes:
-						tmp = os.path.join(d, inc)
-						if os.path.isfile(tmp):
-							included_dirs.append(d)
-		for dep in m.public_required:
-			ok = False
-			for d in dep.public_includes:
-				if d in included_dirs:
-					ok = True
-					break
-			if not ok:
-				utils.warn("Module %s: Useless public dependency '%s'" % (m.name, dep.name))
-	return source_map
-
-#
+		try:
+			m_dependency_map[m] = track_module(m)
+		except config.BaseError as e:
+			raise config.BaseError("Module %s: %s" % (m.name, str(e)))
+	return m_dependency_map
