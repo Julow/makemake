@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/07 12:50:48 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/07 13:24:53 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -80,7 +80,7 @@ def track(modules):
 	m_dependency_map = {}
 	for m in modules:
 		try:
-			m_dependency_map[m] = track_module(m)
+			m_dependency_map[m] = track_module(m) if m.auto_enabled else {}
 		except config.BaseError as e:
 			raise config.BaseError("Module %s: %s" % (m.name, str(e)))
 	return m_dependency_map

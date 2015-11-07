@@ -6,13 +6,12 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/07 01:45:54 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/07 13:23:36 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
 import module
-import dependency_finder
 import config
 
 #

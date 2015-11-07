@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/07 13:06:34 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/07 13:15:02 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -104,14 +104,15 @@ class Module():
 	def _find_file(self):
 		self._source_files = []
 		self._header_files = []
-		for curr_dir, dirs, ls in os.walk(self.base_dir):
-			if os.path.basename(curr_dir) in config.EXCLUDE_DIRS or curr_dir in self.public_includes:
-				del dirs[:]
-			else:
-				for file_name in ls:
-					for ext in config.EXTENSIONS:
-						if file_name.endswith(ext["ext"]):
-							self._source_files.append((os.path.join(curr_dir, file_name), ext))
+		if self.auto_enabled:
+			for curr_dir, dirs, ls in os.walk(self.base_dir):
+				if os.path.basename(curr_dir) in config.EXCLUDE_DIRS or curr_dir in self.public_includes:
+					del dirs[:]
+				else:
+					for file_name in ls:
+						for ext in config.EXTENSIONS:
+							if file_name.endswith(ext["ext"]):
+								self._source_files.append((os.path.join(curr_dir, file_name), ext))
 		for inc_dir in self.public_includes:
 			for curr_dir, dirs, ls, in os.walk(inc_dir):
 				if os.path.basename(curr_dir) in config.EXCLUDE_DIRS:
