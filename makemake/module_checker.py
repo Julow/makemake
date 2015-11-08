@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/07 12:18:42 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/08 20:09:12 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -75,7 +75,7 @@ def check(modules):
 				raise CheckError("Too many main modules (%s)" % ", ".join([m.name for m in modules if m.is_main]))
 		checked.append(module)
 	if main_module == None:
-		raise CheckError("Main module missing")
+		utils.warn("Main module missing")
 	for module in modules:
 		def check_dep(lst):
 			for r in lst:

@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/07 13:24:53 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/07 15:54:55 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -40,7 +40,7 @@ def track_file(module, file_name, included_dirs, include_stack):
 						dependencies.append(dep)
 				break
 		if not ok:
-			raise config.BaseError("Cannot found %s" % inc)
+			raise config.BaseError("Cannot found '%s' included from '%s'" % (inc, os.path.relpath(file_name)))
 	include_stack.pop()
 	return dependencies
 
@@ -80,7 +80,7 @@ def track(modules):
 	m_dependency_map = {}
 	for m in modules:
 		try:
-			m_dependency_map[m] = track_module(m) if m.auto_enabled else {}
+			m_dependency_map[m] = track_module(m) if m.auto_enabled else {} # TODO: ??
 		except config.BaseError as e:
 			raise config.BaseError("Module %s: %s" % (m.name, str(e)))
 	return m_dependency_map

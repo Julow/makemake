@@ -6,13 +6,14 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/07 13:26:13 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/08 20:12:27 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 from sys import argv, stdout
 import module_searcher
 import module_printer
+import module_checker
 import dependency_finder
 import depend_generator
 import makefile_generator
@@ -52,7 +53,8 @@ def list_command(args):
 			)
 
 def check_command(args):
-	modules = module_searcher.load()
+	modules = module_searcher.parse_all()
+	module_checker.check(modules)
 	dependency_finder.track(modules)
 	if len(modules) == 0:
 		print "No module found"
