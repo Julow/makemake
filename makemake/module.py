@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/07 13:15:02 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/09 19:23:46 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -43,8 +43,6 @@ class Module():
 
 		self._include_map = None
 
-		self._included_dirs = None
-		self._included_private = False
 		self._private_dirs = None
 
 	# Return a list of source file
@@ -84,21 +82,18 @@ class Module():
 		return self._private_dirs
 
 	# Return a list of recursively included dirs [(module, dir)]
-	# TODO: private does not WORK ! this is shit
 	def included_dirs(self, private = True):
 		def helper(required, includes):
-			self._included_dirs += [(self, i) for i in includes]
+			dirs = [(self, i) for i in includes]
 			for r in required:
 				for d in r.included_dirs(False):
-					if not d in self._included_dirs:
-						self._included_dirs.append(d)
-		if self._included_dirs == None:
-			self._included_dirs = []
-			helper(self.public_required, self.public_includes)
-		if private and not self._included_private:
-			helper(self.private_required, self.private_includes)
-			self._included_private = True
-		return self._included_dirs
+					if not d in dirs:
+						dirs.append(d)
+			return dirs
+		dirs = helper(self.public_required, self.public_includes)
+		if private:
+			dirs += helper(self.private_required, self.private_includes)
+		return dirs
 
 	# load source_files and header_files
 	def _find_file(self):
