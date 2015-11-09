@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/07 13:23:36 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/09 18:53:00 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,6 +36,7 @@ def out(out, modules, source_map):
 	for m in modules:
 		out.write("\n# module %s\n" % m.name)
 		out_mk_imports(out, m)
+		out_locals(out, m, obj_files[m])
 		out_autos(out, modules, m, source_map[m], obj_files[m])
 
 #
@@ -71,25 +72,28 @@ def out_mk_imports(out, module):
 		else:
 			out.write("include %s" % os.path.relpath(file_name))
 
+def out_locals(out, module, obj_files):
+	obj_names = sorted(obj_files.keys())
+	if len(obj_names) == 0:
+		return
+	for l in module.locals:
+		print_file_list(out, obj_names, 0, "", " ", " \\")
+		out.write(": %s\n" % l)
+	prefix = ": %s +=" % config.INCLUDE_FLAGS_VAR
+	offset = len(prefix) + print_file_list(out, obj_names, 0, "", " ", " \\")
+	out.write(prefix)
+	print_file_list(out, ["-I" + os.path.relpath(i) for _, i in sorted(module.included_dirs())], offset, "\t", " ", " \\")
+	out.write("\n")
+
 def out_autos(out, module_list, module, sources, obj_files):
 	for o_file in sorted(obj_files.keys()):
 		s_file = obj_files[o_file]
 		dependencies = [os.path.relpath(f) for f in [s_file] + sorted(sources[s_file][0])]
-		for l in module.locals:
-			out.write("%s: %s\n" % (o_file, l))
-		out_head_flags(out, module_list, module, o_file)
 		prefix = "%s:" % o_file
 		dep_list = dependencies + ["| %s/" % os.path.dirname(o_file)]
 		out.write(prefix)
 		print_file_list(out, dep_list, len(prefix), "\t", " ", " \\")
 		out.write("\n")
-
-def out_head_flags(out, module_list, module, o_file):
-	prefix = "%s: %s +=" % (o_file, config.INCLUDE_FLAGS_VAR)
-	incs = ["-I" + os.path.relpath(i) for _, i in sorted(module.included_dirs())]
-	out.write(prefix)
-	print_file_list(out, incs, len(prefix), "\t", " ", " \\")
-	out.write("\n")
 
 #
 
