@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/11 02:01:02 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/11 02:31:05 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -66,51 +66,6 @@ def check_command(args):
 		print "No module found"
 	else:
 		print "%d modules - OK" % len(modules)
-
-# help command
-
-HELP = {
-	"list": ("Search and list all modules", """
-		Search and list all modules with their base directory
-		Take no argument
-"""),
-	"check": ("Search modules and check for error", """
-		Search modules and check for error
-		Take no argument
-"""),
-	"info": ("Show info about modules, puts, ...", """
-		Commands available:
-			info modules	Show module declarations
-			info put		Show put'd variables (put instruction)
-			info dep		Show dependencies
-
-		Take module names as argument
-		If called without argument, show info of all modules
-"""),
-	"gen": ("Generate depend file", """
-		Generate a depend file
-"""),
-	"makefile": ("Create a basic Makefile", """
-		Create a basic Makefile
-"""),
-	"help": ("Show help about a command", """
-		Take command names as argument and show their helps
-""")
-}
-
-def help_command(args):
-	if len(args) == 0:
-		print "Commands:"
-		for cmd in sorted(HELP.keys()):
-			print "\t%-12s %s" % (cmd, HELP[cmd][0])
-	else:
-		for arg in args:
-			if arg in HELP:
-				print "\t%-12s %s" % (arg, HELP[arg][0])
-				if HELP[arg][1] != None:
-					print HELP[arg][1]
-			else:
-				print "No help for '%s'" % arg
 
 # info command
 
@@ -175,18 +130,25 @@ def info_dep_command(args):
 			print "%s: %s" % (os.path.basename(src), " ".join(includes))
 
 INFO_COMMANDS = {
-	"modules": info_modules_command,
-	"put": info_puts_command,
-	"dep": info_dep_command
+	"modules": (info_modules_command, "Show module declarations"),
+	"put": (info_puts_command, "Show put'd variables (put instruction)"),
+	"dep": (info_dep_command, "Show dependencies"),
 };
+
+# used by help
+def info_command_list():
+	return "".join(["\t\t\tinfo %-12s %s\n" % (c, INFO_COMMANDS[c][1]) for c in INFO_COMMANDS])
 
 def info_command(args):
 	if len(args) > 0:
 		if args[0] in INFO_COMMANDS:
-			INFO_COMMANDS[args[0]](args[1:])
+			INFO_COMMANDS[args[0]][0](args[1:])
 			return
 		utils.error("Unknown info command %s" % args[0])
-	print "Info commands: %s" % " ".join(sorted(INFO_COMMANDS.keys()))
+	print "Usage makemake2 info [command]"
+	print "Available commands:"
+	for c in sorted(INFO_COMMANDS.keys()):
+		print "\t%-12s %s" % (c, INFO_COMMANDS[c][1])
 
 # gen command
 
@@ -210,27 +172,65 @@ def print_command(args):
 	print "Module tree generated to %s" % file_name
 	utils.open_browser(file_name)
 
+# help command
+
+def help_summary():
+	print "Available commands:"
+	for c in sorted(COMMANDS.keys()):
+		print "\t%-12s %s" % (c, COMMANDS[c][1])
+
+def help_command(args):
+	if len(args) == 0:
+		print "Usage makemake2 help [command]"
+		help_summary()
+		return
+	for arg in args:
+		if arg in COMMANDS:
+			print "\t%-12s %s" % (arg, COMMANDS[arg][1])
+			print COMMANDS[arg][2]
+		else:
+			print "No help for '%s'" % arg
+
 COMMANDS = {
-	"list": list_command,
-	"check": check_command,
-	"help": help_command,
-	"info": info_command,
-	"gen": gen_command,
-	"makefile": makefile_command,
-	"print": print_command,
+	"list": (list_command, "Search and list all modules", """
+		Search and list all modules with their base directory
+		Take no argument
+"""),
+	"check": (check_command, "Search modules and check for error", """
+		Search modules and check for error
+		Take no argument
+"""),
+	"help": (help_command, "Show help about a command", """
+		Take command names as argument and show their helps
+"""),
+	"info": (info_command, "Show info about modules, puts, ...", """
+		Commands available:
+%s
+		Take module names as argument
+		If called without argument, show info of all modules
+""" % info_command_list()),
+	"gen": (gen_command, "Generate depend file", """
+		Generate a depend file
+"""),
+	"makefile": (makefile_command, "Create a basic Makefile", """
+		Create a basic Makefile
+"""),
+	"print": (print_command, "Open a web browser and draw modules", """
+"""),
 }
+
+# main
 
 def main():
 	try:
-		argv[0] = "makemake" # because fuck
 		if len(argv) > 1:
 			if argv[1] in COMMANDS:
-				COMMANDS[argv[1]](argv[2:])
+				COMMANDS[argv[1]][0](argv[2:])
 			else:
 				raise config.BaseError("Unknown command '%s'" % argv[1]) # TODO: exception
 		else:
-			print "%s: Available commands: %s" % (argv[0], ", ".join(sorted(COMMANDS.keys())))
-			print "Type '%s help' for help" % argv[0]
+			print "Usage: makemake2 [command]"
+			help_summary()
 			return 2
 	except config.BaseError as e:
 		utils.error(str(e))
@@ -240,4 +240,6 @@ def main():
 	return 0
 
 if __name__ == '__main__':
-	exit(main())
+	err = main()
+	if err != 0:
+		exit(err)
