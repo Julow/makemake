@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/11 01:34:09 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/11 02:01:02 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,6 +32,8 @@ import os
 # TODO: opti using set and ordered_set
 #
 
+# list command
+
 def list_command(args):
 	modules = module_searcher.parse_all()
 	used_map = {}
@@ -54,6 +56,8 @@ def list_command(args):
 				max_len, m.name, os.path.relpath(m.base_dir)
 			)
 
+# check command
+
 def check_command(args):
 	modules = module_searcher.parse_all()
 	module_checker.check(modules)
@@ -62,6 +66,8 @@ def check_command(args):
 		print "No module found"
 	else:
 		print "%d modules - OK" % len(modules)
+
+# help command
 
 HELP = {
 	"list": ("Search and list all modules", """
@@ -72,16 +78,14 @@ HELP = {
 		Search modules and check for error
 		Take no argument
 """),
-	"dep": ("Show dependencies for each source of a module", """
+	"info": ("Show info about modules, puts, ...", """
+		Commands available:
+			info modules	Show module declarations
+			info put		Show put'd variables (put instruction)
+			info dep		Show dependencies
+
 		Take module names as argument
-"""),
-	"info": ("Show info about modules", """
-		Take module names as argument
-		If called without argument, show info about each modules
-"""),
-	"put": ("Show variables putted by one or more modules", """
-		Take module names as argument
-		If called without argument, show var of all modules
+		If called without argument, show info of all modules
 """),
 	"gen": ("Generate depend file", """
 		Generate a depend file
@@ -108,23 +112,26 @@ def help_command(args):
 			else:
 				print "No help for '%s'" % arg
 
-def info_command(args):
+# info command
+
+def _info_modules(args):
 	modules = module_searcher.load()
-	if len(args) > 0:
-		for m_name in args:
-			ok = False
-			for m in modules:
-				if m.name == m_name:
-					ok = True
-					break
-			if not ok:
-				raise config.BaseError("Unknow module '%s'" % m_name) # TODO: exception
-		arg_modules = []
+	if len(args) == 0:
+		return modules
+	arg_modules = []
+	for m_name in args:
+		ok = False
 		for m in modules:
-			if m.name in args:
+			if m.name == m_name:
 				arg_modules.append(m)
-		modules = arg_modules
-	for m in modules:
+				ok = True
+				break
+		if not ok:
+			raise config.BaseError("Unknown module '%s'" % m_name) # TODO: exception
+	return arg_modules
+
+def info_modules_command(args):
+	for m in _info_modules(args):
 		print "module %s: %s/" % (m.name, os.path.relpath(m.base_dir))
 		for i in m.public_includes:
 			print "\tpublic include %s/" % os.path.relpath(i, m.base_dir)
@@ -144,59 +151,59 @@ def info_command(args):
 			print "\tmakefile %s %s" % ("import" if c else "include", os.path.relpath(i, m.base_dir))
 		print ""
 
-# dep command
-def show_dep(m, sources):
-	print "# module %s" % m.name
-	for src in sources:
-		includes = []
-		for i in sources[src][0]:
-			includes.append(os.path.relpath(i))
-		print "%s: %s" % (os.path.basename(src), " ".join(includes))
-
-def dep_command(args):
-	modules = module_searcher.load()
-	source_map = dependency_finder.track(modules)
-	if len(args) == 0:
-		for m in modules:
-			show_dep(m, source_map[m])
-	else:
-		for m_name in args:
-			tmp = None
-			for m in modules:
-				if m.name == m_name:
-					tmp = m
-					break
-			if tmp == None:
-				raise config.BaseError("Unknow module '%s'" % m_name) # TODO: exception
-			if tmp in source_map:
-				show_dep(tmp, source_map[tmp])
-			else:
-				raise config.BaseError("WTF happen with module '%s'" % m_name)
-
-def put_command(args):
-	put = {}
-	for m in module_searcher.load():
-		if len(args) > 0 and not m.name in args:
-			continue
+def info_puts_command(args):
+	puts = {}
+	for m in _info_modules(args):
 		for var in m.to_put:
-			if not var in put:
-				put[var] = []
+			if not var in puts:
+				puts[var] = []
 			for word in m.to_put[var]:
-				if not word in put[var]:
-					put[var].append(word)
-	for var in put.keys():
-		print "%s = %s" % (var, " ".join(put[var]))
+				if not word in puts[var]:
+					puts[var].append(word)
+	for var in puts:
+		print "%s = %s" % (var, " ".join(puts[var]))
+
+def info_dep_command(args):
+	modules = _info_modules(args)
+	source_map = dependency_finder.track(modules)
+	for m in modules:
+		print "# module %s" % m.name
+		for src in source_map[m]:
+			includes = []
+			for i in source_map[m][src][0]:
+				includes.append(os.path.relpath(i))
+			print "%s: %s" % (os.path.basename(src), " ".join(includes))
+
+INFO_COMMANDS = {
+	"modules": info_modules_command,
+	"put": info_puts_command,
+	"dep": info_dep_command
+};
+
+def info_command(args):
+	if len(args) > 0:
+		if args[0] in INFO_COMMANDS:
+			INFO_COMMANDS[args[0]](args[1:])
+			return
+		utils.error("Unknown info command %s" % args[0])
+	print "Info commands: %s" % " ".join(sorted(INFO_COMMANDS.keys()))
+
+# gen command
 
 def gen_command(args):
 	modules = module_searcher.load()
 	source_map = dependency_finder.track(modules)
 	depend_generator.gen(config.DEPEND_FILE_NAME, modules, source_map)
 
+# makefile command
+
 def makefile_command(args):
 	if os.path.exists(config.MAKEFILE_NAME):
 		print "Makefile already exists"
 	else:
 		makefile_generator.gen(config.MAKEFILE_NAME)
+
+# print command
 
 def print_command(args):
 	file_name = module_printer.gen(module_searcher.load())
@@ -207,9 +214,7 @@ COMMANDS = {
 	"list": list_command,
 	"check": check_command,
 	"help": help_command,
-	"dep": dep_command,
 	"info": info_command,
-	"put": put_command,
 	"gen": gen_command,
 	"makefile": makefile_command,
 	"print": print_command,
@@ -222,13 +227,13 @@ def main():
 			if argv[1] in COMMANDS:
 				COMMANDS[argv[1]](argv[2:])
 			else:
-				raise config.BaseError("Unknow command '%s'" % argv[1]) # TODO: exception
+				raise config.BaseError("Unknown command '%s'" % argv[1]) # TODO: exception
 		else:
 			print "%s: Available commands: %s" % (argv[0], ", ".join(sorted(COMMANDS.keys())))
 			print "Type '%s help' for help" % argv[0]
 			return 2
 	except config.BaseError as e:
-		print "\033[31mError:\033[0m %s" % str(e)
+		utils.error(str(e))
 		return 1
 	except Exception as e:
 		raise
