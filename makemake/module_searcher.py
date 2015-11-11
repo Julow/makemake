@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:46 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/05 18:46:08 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/11 01:10:11 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -76,9 +76,13 @@ def filter_unused(modules):
 				check_used(dep)
 			for dep in m.private_required:
 				check_used(dep)
+	ok = False
 	for m in modules:
 		if m.is_main:
+			ok = True
 			check_used(m)
+	if not ok:
+		return modules
 	return used_map.values()
 
 #

@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/08 20:12:27 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/11 01:34:09 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -41,7 +41,9 @@ def list_command(args):
 	if len(modules) == 0:
 		print "No module found"
 	else:
-		print "%d \033[90m(+%d unused)\033[0m modules:" % (len(used_modules), len(modules) - len(used_modules))
+		unused_count = len(modules) - len(used_modules)
+		extra = "" if unused_count == 0 else "\033[90m(+%d unused)\033[0m " % unused_count
+		print "%d %smodule%s:" % (len(modules), extra, "s" if len(modules) > 1 else "")
 		max_len = 0
 		for m in modules:
 			if len(m.name) > max_len:
@@ -95,7 +97,7 @@ HELP = {
 def help_command(args):
 	if len(args) == 0:
 		print "Commands:"
-		for cmd in HELP:
+		for cmd in sorted(HELP.keys()):
 			print "\t%-12s %s" % (cmd, HELP[cmd][0])
 	else:
 		for arg in args:
@@ -107,7 +109,7 @@ def help_command(args):
 				print "No help for '%s'" % arg
 
 def info_command(args):
-	modules = module_searcher.all()
+	modules = module_searcher.load()
 	if len(args) > 0:
 		for m_name in args:
 			ok = False
@@ -123,15 +125,15 @@ def info_command(args):
 				arg_modules.append(m)
 		modules = arg_modules
 	for m in modules:
-		print "module %s: %s" % (m.name, os.path.relpath(m.base_dir))
+		print "module %s: %s/" % (m.name, os.path.relpath(m.base_dir))
 		for i in m.public_includes:
-			print "\tpublic include %s" % os.path.relpath(i)
+			print "\tpublic include %s/" % os.path.relpath(i, m.base_dir)
 		for i in m.private_includes:
-			print "\tprivate include %s" % os.path.relpath(i)
+			print "\tprivate include %s/" % os.path.relpath(i, m.base_dir)
 		for r in m.public_required:
-			print "\tpublic require %s" % r
+			print "\tpublic require %s" % r.name
 		for r in m.private_required:
-			print "\tprivate require %s" % r
+			print "\tprivate require %s" % r.name
 		for p in m.to_put:
 			print "\tput %s %s" % (p, " ".join(m.to_put[p]))
 		for l in m.locals:
@@ -139,7 +141,7 @@ def info_command(args):
 		if not m.auto_enabled:
 			print "\tdisable auto"
 		for (i, c) in m.mk_imports:
-			print "\tmakefile %s %s" % ("import" if c else "include", os.path.relpath(i))
+			print "\tmakefile %s %s" % ("import" if c else "include", os.path.relpath(i, m.base_dir))
 		print ""
 
 # dep command
@@ -185,9 +187,6 @@ def put_command(args):
 	for var in put.keys():
 		print "%s = %s" % (var, " ".join(put[var]))
 
-def debug_command(args):
-	print ""
-
 def gen_command(args):
 	modules = module_searcher.load()
 	source_map = dependency_finder.track(modules)
@@ -214,7 +213,6 @@ COMMANDS = {
 	"gen": gen_command,
 	"makefile": makefile_command,
 	"print": print_command,
-	"debug": debug_command,
 }
 
 def main():
