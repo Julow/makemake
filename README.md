@@ -54,6 +54,10 @@ module <module_name>: <module_dir>
 	# Add a target-only variable
 	local DEBUG_FLAGS += -DDEBUG
 
+	# Add a source directory (relative to <module_dir>)
+	source srcs/
+	# If no source directory are specified, default is './'
+
 	# Disable automatic search of source files
 	disable auto
 
@@ -77,9 +81,10 @@ and are searched recursively
 ##### Example:
 
 ```makefile
-module libft: libft/srcs
-	public include ../include
+module libft: libft/
+	public include include
 	private include internal/include
+	source srcs
 
 module get_next_line: libft/get_next_line/
 	public include include/

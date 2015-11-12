@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/12 17:31:33 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/12 23:46:53 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,46 +14,6 @@ import os
 import module
 import config
 import utils
-
-#
-# module file syntax
-#
-# module declaration goes to a 'module' file
-# these files are searched recursively
-#
-# There can be several module declaration per file
-#
-# module module_name: base_dir		# Declare a module
-#
-#										base_dir is the base dir of the module
-#										(default: current dir)
-#
-#									# Everything is optionnal
-#
-#	public include include/				# Path to public headers dir (or file)
-#
-#	private include include/internal	# local HEAD_FLAGS += -Iinclude/internal
-#	include templates					# Same
-#
-#	public require module1				# Declare a public dependency
-#
-#	private require module2				# Same but the dependency is private
-#	require module3						# Default visibility is always 'private'
-#
-#	put LINK_FLAGS -lm					# Put (without dupplicate) '-lm'
-#											to the variable LINK_FLAGS
-#
-#	local DEBUG_FLAGS += -DDEBUG		# Target only variable
-#
-#	disable auto						# Disable automatic search for source
-#
-#	makefile include file.mk			# Add an 'include file.mk' directive
-#	makefile import file.mk				# Copy the content of file.mk
-#
-#									# The indentation is not important
-#
-# -
-#
 
 #
 
@@ -69,6 +29,7 @@ MODULE_INSTRUCTIONS = {
 	"require":	(1, 1,	lambda m, w, v: m.require(w[0], v == "public")),
 	"put":		(2, -1,	lambda m, w, v: m.put(w[0], w[1:])),
 	"local":	(1, -1,	lambda m, w, v: m.local(" ".join(w))),
+	"source":	(1, -1,	lambda m, w, v: m.source(w)),
 	"disable":	(1, 1,	lambda m, w, v: m.disable(w[0])),
 	"makefile":	(2, 2,	_instruction_makefile)
 }

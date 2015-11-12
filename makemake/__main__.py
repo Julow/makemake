@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/12 17:34:12 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/12 23:51:28 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,8 +31,9 @@ import os
 # TODO: opti using set and ordered_set
 # TODO: order depend.mk per dependency
 # TODO: "makefile import" to "mk import"
-# TODO: exclude dir (auto)
+# TODO: exclude dir (.gitignore)
 # TODO: relative includes
+# TODO: ocaml
 #
 
 # list command
