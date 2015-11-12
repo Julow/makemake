@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:39:40 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/02 23:12:23 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/12 15:41:10 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,6 +35,7 @@ INCLUDE_FLAGS_VAR = "INCLUDE_FLAGS"
 
 INCLUDE_REG = '^ *# *include *(?:"([^"]+)"|<([^>]+)>)'
 GIT_SUBMODULE_REG = '^\s*path\s*=\s*(.+)$'
+VARIABLE_REG = '\?([a-zA-Z0-9_]+)\?'
 
 # Base exception for . error
 class BaseError(Exception):

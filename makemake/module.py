@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/09 19:23:46 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/12 17:09:14 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -187,3 +187,13 @@ def get_puts(module_list):
 				if not word in put[var]:
 					put[var].append(word)
 	return put
+
+#
+# Return default ?variables? for a module
+#
+
+def get_variables(module):
+	return {
+		"path": os.path.relpath(module.base_dir),
+		"name": module.name
+	}

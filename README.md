@@ -46,6 +46,11 @@ module <module_name>: <module_dir>
 	# Put (without dupplicate) a word in a variable
 	put LINK_FLAGS -lm
 
+	# ?path? is substitued with the module's (relative) base_dir
+	put CONFIG_FILES ?path?/config_file
+	# ?name? is substitued with the module's name
+	put MODULE_NAMES ?name?
+
 	# Add a target-only variable
 	local DEBUG_FLAGS += -DDEBUG
 
@@ -56,6 +61,7 @@ module <module_name>: <module_dir>
 	makefile include file.mk
 	# file.mk will be copied into the depend.mk
 	makefile import file.mk
+	# imported file have access to ?path? and ?name? substitutions
 
 	# Default visibility (public/private) is private
 	# Every declarations are optional

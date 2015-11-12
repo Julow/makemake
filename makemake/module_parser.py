@@ -6,13 +6,14 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/05 18:15:54 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/12 17:31:33 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
 import module
 import config
+import utils
 
 #
 # module file syntax
@@ -89,6 +90,7 @@ def parse(file_name):
 	current_module = None
 	line_n = 0
 	f_line = ""
+	variables = None
 	try:
 		with open(file_name, "r") as f:
 			for f_line in f:
@@ -115,12 +117,13 @@ def parse(file_name):
 					rel = os.path.relpath(words[2] if len(words) == 3 else ".")
 					current_module = module.Module(words[1], os.path.abspath(os.path.join(os.path.dirname(file_name), rel)))
 					current_module.is_main = visiblity == "main"
+					variables = module.get_variables(current_module)
 					modules.append(current_module)
 				elif visiblity == "main":
 					raise ParserError("'main' visiblity is for module declaration")
 				elif words[0] in MODULE_INSTRUCTIONS:
 					instr = MODULE_INSTRUCTIONS[words[0]]
-					args = words[1:]
+					args = [utils.substitute_vars(w, variables) for w in words[1:]]
 					if instr[0] >= 0 and len(args) < instr[0]:
 						raise ParserError("Not enougth argument for '%s'" % words[0])
 					if instr[1] >= 0 and len(args) > instr[1]:

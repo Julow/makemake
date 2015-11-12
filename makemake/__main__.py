@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/11 02:31:05 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/12 17:34:12 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,9 +27,12 @@ import os
 #
 
 #
-# TODO: ?path? for full relative path (in module file)
 # TODO: public local instruction
 # TODO: opti using set and ordered_set
+# TODO: order depend.mk per dependency
+# TODO: "makefile import" to "mk import"
+# TODO: exclude dir (auto)
+# TODO: relative includes
 #
 
 # list command

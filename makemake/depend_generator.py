@@ -6,13 +6,14 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/09 18:53:00 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/12 17:33:21 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
 import module
 import config
+import utils
 
 #
 # Overwrite file_name
@@ -58,17 +59,17 @@ def out_puts(out, modules, extra):
 	for var in puts.keys() + extra.keys():
 		p = puts[var] if var in puts else []
 		if var in extra:
-			p += extra[var]
+			p = p + extra[var]
 		prefix = "%s +=" % var
 		out.write(prefix)
 		print_file_list(out, p, len(prefix), "\t", " ", " \\")
 		out.write("\n")
 
-def out_mk_imports(out, module):
-	for file_name, copy in module.mk_imports:
+def out_mk_imports(out, mod):
+	for file_name, copy in mod.mk_imports:
 		if copy:
 			with open(file_name) as f:
-				out.write(f.read())
+				out.write(utils.substitute_vars(f.read(), module.get_variables(mod)))
 		else:
 			out.write("include %s" % os.path.relpath(file_name))
 
