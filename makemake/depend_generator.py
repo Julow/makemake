@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/12 17:33:21 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/12 18:00:18 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,12 +28,20 @@ def gen(file_name, modules, source_map):
 
 def out(out, modules, source_map):
 	obj_files = {}
+	sorted_modules = sorted(modules, key=lambda m: m.name)
 	obj_file_list = []
-	for m in sorted(modules, key=lambda m: m.name):
+	for m in sorted_modules:
 		o = get_obj_files(source_map[m])
 		obj_file_list += sorted(o.keys())
 		obj_files[m] = o
-	out_puts(out, modules, {"O_FILES": obj_file_list})
+	public_dirs = []
+	for m in sorted_modules:
+		if len(m.public_includes) > 0:
+			public_dirs += sorted([os.path.relpath(p) for p in m.public_includes])
+	out_puts(out, modules, {
+		"O_FILES": obj_file_list,
+		"PUBLIC_DIRS": public_dirs
+	})
 	for m in modules:
 		out.write("\n# module %s\n" % m.name)
 		out_mk_imports(out, m)
@@ -56,7 +64,7 @@ def get_obj_files(sources):
 
 def out_puts(out, modules, extra):
 	puts = module.get_puts(modules)
-	for var in puts.keys() + extra.keys():
+	for var in sorted(puts.keys() + extra.keys()):
 		p = puts[var] if var in puts else []
 		if var in extra:
 			p = p + extra[var]

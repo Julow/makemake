@@ -2,7 +2,7 @@
 
 Help to split a program by `module`
 (see [module language](#module-language) below)<br />
-And generate/_maintains_ a `depend.mk` file
+And generate/_maintains_ a `depend.mk` file (see [below](#generated-depend-mk))
 
 ### Usage
 
@@ -78,15 +78,15 @@ and are searched recursively
 
 ```makefile
 module libft: libft/srcs
-	public include libft/include
-	private include libft/internal/include
+	public include ../include
+	private include internal/include
 
 module get_next_line: libft/get_next_line/
 	public include include/
 	public require libft
 
 module math: srcs/math
-	public include srcs/math/include
+	public include include/
 	private require libft
 
 	put LINK_FLAGS -lm
@@ -97,9 +97,56 @@ module useless: srcs/useless
 # If a main module is declared, unused modules will be discarded
 main module test: srcs/test
 
+	private include include/
+
+	local LOL = ?path?
+
 	private require libft
 	private require get_next_line
 	private require math
 ```
 
 Bigger example: [scop](https://github.com/Julow/scop)
+
+##### Generated depend.mk
+
+Objects files are put in the `$(O_FILES)` variable
+
+`$(O_DIR)` have to be declared _before_ including `depend.mk`
+
+```makefile
+## first the put'd variables (user defined)
+LINK_FLAGS += -lm
+## O_FILES var
+O_FILES += $(O_DIR)/srcs/test/test.o $(O_DIR)/libft/srcs/ft_memcpy.o \
+	$(O_DIR)/libft/get_next_line/get_next_line.o
+## PUBLIC_DIRS var
+PUBLIC_DIRS += libft/include libft/get_next_line/include srcs/math/include
+
+## then dependencies
+
+# module libft
+$(O_DIR)/libft/srcs/ft_memcpy.o: INCLUDE_FLAGS += -Ilibft
+$(O_DIR)/libft/srcs/ft_memcpy.o: libft/srcs/ft_memcpy.c libft/libft.h
+
+# module get_next_line
+$(O_DIR)/libft/get_next_line/get_next_line.o: INCLUDE_FLAGS += -Ilibft \
+	-Ilibft/get_next_line
+$(O_DIR)/libft/get_next_line/get_next_line.o: \
+	libft/get_next_line/get_next_line.c libft/libft.h \
+	libft/get_next_line/get_next_line.h
+
+# module test
+
+## if module have "makefile import" or "makefile include"
+## it goes here
+
+## local variables
+$(O_DIR)/srcs/test/test.o: LOL = srcs/test
+## INCLUDE_FLAGS is an automatic local
+$(O_DIR)/srcs/test/test.o: INCLUDE_FLAGS += -Ilibft -Ilibft/get_next_line \
+	-Isrcs/test/include -Isrcs/math/include
+## dependencies
+$(O_DIR)/srcs/test/test.o: srcs/test/test.c srcs/test/include/test.h \
+	libft/get_next_line/get_next_line.h libft/libft.h
+```
