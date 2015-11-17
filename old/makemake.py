@@ -7,7 +7,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/08/21 19:45:08 by juloo             #+#    #+#              #
-#    Updated: 2015/10/02 22:10:57 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/17 15:23:22 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,25 +46,26 @@ MAX_SRC_LEN_VAR = "MAX_SOURCE_LEN := "
 DEFAULT_MAKEFILE = """#
 
 # Executable name
-NAME		:= %(name)s
+NAME			:= %(name)s
 
 # Project directories
-DIRS		:= %(dirs)s
+DIRS			:= %(dirs)s
+INCLUDE_DIRS	:=
 
 # Git submodule to init
-MODULES		:= %(modules)s
+MODULES			:= %(modules)s
 # Makefiles to call
-LIBS		:= %(libs)s
+LIBS			:= %(libs)s
 
 # Base flags
-BASE_FLAGS	= -Wall -Wextra
-HEAD_FLAGS	= $(addprefix -I,$(DIRS))
+BASE_FLAGS		= -Wall -Wextra
+HEAD_FLAGS		= $(addprefix -I,$(DIRS))
 
 # Compilation flags (per language)
-C_FLAGS		= $(HEAD_FLAGS) $(BASE_FLAGS)
-CPP_FLAGS	= $(HEAD_FLAGS) $(BASE_FLAGS) -std=c++14
+C_FLAGS			= $(HEAD_FLAGS) $(BASE_FLAGS)
+CPP_FLAGS		= $(HEAD_FLAGS) $(BASE_FLAGS) -std=c++14
 
-LINK_FLAGS	= $(BASE_FLAGS)
+LINK_FLAGS		= $(BASE_FLAGS)
 
 ifeq ($(DEBUG_MODE),1)
 	# Extra flags used in debug mode
@@ -78,11 +79,11 @@ else
 	CPP_FLAGS	+=
 endif
 
-DEBUG_MODE	?= 0
+DEBUG_MODE		?= 0
 export DEBUG_MODE
 
 # Jobs
-JOBS		:= 4
+JOBS			:= 4
 
 # Column output
 COLUMN_OUTPUT	:= 1
@@ -96,10 +97,10 @@ else
 endif
 
 # Objects directory
-O_DIR		:= o
+O_DIR			:= o
 
 # Depend file name
-DEPEND		:= depend.mk
+DEPEND			:= depend.mk
 
 # tmp
 MODULE_RULES	:= $(addsuffix /.git,$(MODULES))
@@ -225,7 +226,7 @@ def parse_libs_def(libs_def):
 # (except dir starting with '.')
 def get_file_tree(dir_name):
 	tree = []
-	for curr_dir, dirs, files in os.walk(dir_name):
+	for curr_dir, dirs, files in os.walk(dir_name, followlinks=True):
 		if path.basename(curr_dir) in EXCLUDE_DIRS:
 			del dirs[:]
 		else:
@@ -376,13 +377,15 @@ def print_file_list(out, files, offset, indent, sep, endl):
 	return offset
 
 #
-def generate_depend(name, dirs, o_dir, libs):
+def generate_depend(name, (c_dirs, include_dirs), o_dir, libs):
 	source_files = []
 	include_files = {}
-	for d in dirs:
+	for d in c_dirs:
 		f_tree = get_file_tree(d)
 		source_files += get_source_files(f_tree)
 		include_files.update(get_include_files(f_tree, d))
+	for d in include_dirs:
+		include_files.update(get_include_files(get_file_tree(d), d))
 	obj_files = get_obj_files(source_files, include_files, o_dir)
 	libs_depend = []
 	for l in libs:
@@ -446,7 +449,7 @@ except Exception as e:
 	exit(1)
 
 # test required vars
-for var in ['DEPEND', 'DIRS', 'O_DIR']:
+for var in ['DEPEND', 'DIRS', 'INCLUDE_DIRS', 'O_DIR']:
 	if config is None or var not in config:
 		print "Error: Variable $(%s) not present in %s" % (var, MAKEFILE_NAME)
 		exit(1)
@@ -457,7 +460,7 @@ for var in ['DEPEND', 'DIRS', 'O_DIR']:
 # generate $(DEPEND)
 try:
 	libs = parse_libs_def(config['LIBS']) if 'LIBS' in config else []
-	generate_depend(config['DEPEND'], config['DIRS'].split(), config['O_DIR'], libs)
+	generate_depend(config['DEPEND'], (config['DIRS'].split(), config['INCLUDE_DIRS'].split()), config['O_DIR'], libs)
 except Exception as e:
 	print "Error Cannot generate %s: %s" % (config['DEPEND'], e)
 	exit(1)
