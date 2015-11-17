@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/12 23:49:15 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/17 01:13:54 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -102,6 +102,20 @@ class Module():
 		if private:
 			dirs += helper(self.private_required, self.private_includes)
 		return dirs
+
+	# Return a list of recursively required modules
+	def required_modules(self, private = True):
+		def helper(required):
+			modules = required
+			for r in required:
+				for d in r.required_modules(False):
+					if not d in modules:
+						modules.append(d)
+			return modules
+		modules = helper(self.public_required)
+		if private:
+			modules += helper(self.private_required)
+		return modules
 
 	# load source_files and header_files
 	def _find_file(self):

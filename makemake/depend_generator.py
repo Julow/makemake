@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/12 18:00:18 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/17 01:32:11 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -45,6 +45,7 @@ def out(out, modules, source_map):
 	for m in modules:
 		out.write("\n# module %s\n" % m.name)
 		out_mk_imports(out, m)
+		out_inc_links(out, m, obj_files[m])
 		out_locals(out, m, obj_files[m])
 		out_autos(out, modules, m, source_map[m], obj_files[m])
 
@@ -80,6 +81,36 @@ def out_mk_imports(out, mod):
 				out.write(utils.substitute_vars(f.read(), module.get_variables(mod)))
 		else:
 			out.write("include %s" % os.path.relpath(file_name))
+
+def out_inc_links(out, module, obj_files):
+	link_dir = os.path.join(config.OBJ_DIR, os.path.relpath(module.base_dir), config.PUBLIC_LINK_DIR)
+	links = []
+	for dep in module.required_modules():
+		if len(dep.public_includes) == 0:
+			continue
+		link = os.path.join(link_dir, dep.name.replace('::', '_'))
+		dep_dir = os.path.relpath(dep.public_includes[0])
+		links.append((link, dep_dir))
+	if len(links) == 0:
+		return
+	prefix = ":"
+	offset = print_file_list(out, [l for l, _ in links], 0, "", " ", " \\") + len(prefix)
+	out.write(prefix)
+	print_file_list(out, ["| %s/" % link_dir], offset, "\t", " ", " \\")
+	out.write("\n")
+	for link, dep_dir in links:
+		prefix = "%s:" % link
+		out.write(prefix)
+		print_file_list(out, [dep_dir], len(prefix), "\t", " ", " \\")
+		out.write("\n")
+	out.write("\n")
+	obj_names = sorted(obj_files.keys())
+	prefix = ":"
+	offset = print_file_list(out, obj_names, 0, "", " ", " \\") + len(prefix)
+	out.write(prefix)
+	print_file_list(out, ["|"] + [l for l, _ in links], offset, "\t", " ", " \\")
+	out.write("\n")
+	out.write("\n")
 
 def out_locals(out, module, obj_files):
 	obj_names = sorted(obj_files.keys())

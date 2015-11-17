@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:39:40 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/12 15:41:10 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/17 00:57:36 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,6 +25,8 @@ EXTENSIONS = [
 ]
 
 OBJ_DIR = "$(O_DIR)"
+
+PUBLIC_LINK_DIR = "_public"
 
 MAKEFILE_NAME = "Makefile"
 DEPEND_FILE_NAME = "depend.mk"
