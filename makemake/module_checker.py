@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/08 20:09:12 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/17 11:32:53 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,6 +33,31 @@ def check_include_loop(module, include_stack):
 	loop(module.private_required)
 	include_stack.pop()
 
+# Check a module
+def _check_module(module, checked_modules):
+	if not os.path.isdir(module.base_dir):
+		raise CheckError("Invalid base dir: %s" % module.base_dir)
+	for i in module.public_includes:
+		if not os.path.isdir(i):
+			raise CheckError("Invalid include: %s" % i)
+	for checked in checked_modules:
+		if module.base_dir == checked.base_dir:
+			raise CheckError("Modules '%s': Have the same base dir: %s" % (
+				checked.name, module.base_dir
+			))
+		for i in module.public_includes:
+			if i in checked.public_includes:
+				raise CheckError("Modules '%s': Include the same dir (%s)" % (
+					checked.name, i
+				))
+	for inc, _ in module.mk_imports:
+		if not os.path.isfile(inc):
+			raise CheckError("Imported file '%s' %s" % (
+				inc, "is not a valid file" if os.path.exists(inc) else "does not exists"
+			))
+	if len(module.public_includes) > 1:
+		utils.warn("Too many public dirs")
+
 #
 # Check for errors
 #
@@ -41,39 +66,21 @@ def check_include_loop(module, include_stack):
 def check(modules):
 	checked = []
 	module_names = {}
-	module_map = {}
 	main_module = None
 	for module in modules:
-		if module.name in module_names:
-			raise CheckError("Module '%s' redefined" % module.name)
-		module_names[module.name] = module
-		module_map[module] = True
-		if not os.path.isdir(module.base_dir):
-			raise CheckError("Invalid base dir for module '%s' (%s)" % (module.name, module.base_dir))
-		for i in module.public_includes:
-			if not os.path.isdir(i):
-				raise CheckError("Invalid include for module '%s' (%s)" % (module.name, i))
-		for checked_module in checked:
-			if module.base_dir == checked_module.base_dir:
-				raise CheckError("Modules '%s' and '%s' have the same dir (%s)" % (
-					module.name, checked_module.name, module.base_dir
-				))
-			for i in module.public_includes:
-				if i in checked_module.public_includes:
-					raise CheckError("Modules '%s' and '%s' include the same dir (%s)" % (
-						module.name, checked_module.name, i
-					))
-		for inc, _ in module.mk_imports:
-			if not os.path.isfile(inc):
-				raise CheckError("File '%s' %s (included from module %s)" % (
-					inc, "is not a valid file" if os.path.exists(inc) else "does not exists", module.name
-				))
+		try:
+			if module.name in module_names:
+				raise CheckError("redefined")
+			module_names[module.name] = module
+			_check_module(module, checked)
+			checked.append(module)
+		except config.BaseError as e:
+			raise CheckError("Module %s: %s" % (module.name, str(e)))
 		if module.is_main:
 			if main_module == None:
 				main_module = module
 			else:
 				raise CheckError("Too many main modules (%s)" % ", ".join([m.name for m in modules if m.is_main]))
-		checked.append(module)
 	if main_module == None:
 		utils.warn("Main module missing")
 	for module in modules:

@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 21:26:47 by juloo             #+#    #+#              #
-#    Updated: 2015/11/01 09:48:26 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/17 14:10:43 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -94,7 +94,7 @@ else
 endif
 
 # Include $(O_FILES) and dependencies
--include $(DEPEND)
+include $(DEPEND)
 
 libs_rules: $(LIBS_RULES)
 
@@ -113,6 +113,9 @@ $(SUBMODULE_RULES):
 	git submodule init $(@:.git=)
 	git submodule update $(@:.git=)
 
+# Create include links
+$(PUBLIC_LINKS):
+	ln -s $(abspath $<) $@
 # Create obj directories
 $(O_DIR)/%%/:
 	mkdir -p $@
@@ -126,7 +129,7 @@ rebug: fclean debug
 # Clean obj files
 clean:
 	rm -f $(PRINT_FILE)
-	rm -f $(O_FILES)
+	rm -f $(O_FILES) $(PUBLIC_LINKS)
 
 # Clean everything
 fclean: clean

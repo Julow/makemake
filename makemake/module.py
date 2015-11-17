@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/17 01:13:54 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/17 12:08:13 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -66,6 +66,7 @@ class Module():
 		return self._header_files
 
 	# Return a list of directly included files {file_name: [includes]}
+	# TODO: improve
 	def include_map(self):
 		if self._include_map == None:
 			self._include_map = {}
@@ -74,8 +75,9 @@ class Module():
 				with open(file_name, "r") as f:
 					for line in f:
 						m = INCLUDE_REG.match(line)
-						if m != None and m.group(1) != None:
-							included.append(m.group(1))
+						if m != None:
+							# m.group(1)
+							included.append(m.group(2))
 				self._include_map[file_name] = included
 		return self._include_map
 

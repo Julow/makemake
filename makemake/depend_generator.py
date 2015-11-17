@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/17 01:32:11 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/17 14:06:01 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,8 +39,8 @@ def out(out, modules, source_map):
 		if len(m.public_includes) > 0:
 			public_dirs += sorted([os.path.relpath(p) for p in m.public_includes])
 	out_puts(out, modules, {
-		"O_FILES": obj_file_list,
-		"PUBLIC_DIRS": public_dirs
+		"O_FILES": obj_file_list
+		# "PUBLIC_DIRS": public_dirs
 	})
 	for m in modules:
 		out.write("\n# module %s\n" % m.name)
@@ -85,7 +85,7 @@ def out_mk_imports(out, mod):
 def out_inc_links(out, module, obj_files):
 	link_dir = os.path.join(config.OBJ_DIR, os.path.relpath(module.base_dir), config.PUBLIC_LINK_DIR)
 	links = []
-	for dep in module.required_modules():
+	for dep in module.required_modules() + [module]:
 		if len(dep.public_includes) == 0:
 			continue
 		link = os.path.join(link_dir, dep.name.replace('::', '_'))
@@ -104,7 +104,17 @@ def out_inc_links(out, module, obj_files):
 		print_file_list(out, [dep_dir], len(prefix), "\t", " ", " \\")
 		out.write("\n")
 	out.write("\n")
+	prefix = "PUBLIC_LINKS +="
+	out.write(prefix)
+	print_file_list(out, [l for l, _ in links], len(prefix), "\t", " ", " \\")
+	out.write("\n")
+	out.write("\n")
 	obj_names = sorted(obj_files.keys())
+	prefix = ":"
+	offset = print_file_list(out, obj_names, 0, "", " ", " \\") + len(prefix)
+	out.write(prefix)
+	print_file_list(out, [config.INCLUDE_FLAGS_VAR, "+=", "-I%s" % link_dir] + ["-I%s" % os.path.relpath(d) for d in module.private_includes], offset, "\t", " ", " \\")
+	out.write("\n")
 	prefix = ":"
 	offset = print_file_list(out, obj_names, 0, "", " ", " \\") + len(prefix)
 	out.write(prefix)
@@ -119,11 +129,11 @@ def out_locals(out, module, obj_files):
 	for l in module.locals:
 		print_file_list(out, obj_names, 0, "", " ", " \\")
 		out.write(": %s\n" % l)
-	prefix = ": %s +=" % config.INCLUDE_FLAGS_VAR
-	offset = len(prefix) + print_file_list(out, obj_names, 0, "", " ", " \\")
-	out.write(prefix)
-	print_file_list(out, ["-I" + os.path.relpath(i) for _, i in sorted(module.included_dirs())], offset, "\t", " ", " \\")
-	out.write("\n")
+	# prefix = ": %s +=" % config.INCLUDE_FLAGS_VAR
+	# offset = len(prefix) + print_file_list(out, obj_names, 0, "", " ", " \\")
+	# out.write(prefix)
+	# print_file_list(out, ["-I" + os.path.relpath(i) for _, i in sorted(module.included_dirs())], offset, "\t", " ", " \\")
+	# out.write("\n")
 
 def out_autos(out, module_list, module, sources, obj_files):
 	for o_file in sorted(obj_files.keys()):

@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/12 23:51:28 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/17 11:34:42 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,6 +34,7 @@ import os
 # TODO: exclude dir (.gitignore)
 # TODO: relative includes
 # TODO: ocaml
+# TODO: allow multiple main module
 #
 
 # list command
