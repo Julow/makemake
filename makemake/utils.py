@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/11/03 09:35:59 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/12 17:30:50 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/18 00:30:33 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ import subprocess
 import sys
 import config
 import re
+import time
 
 VARIABLE_REG = re.compile(config.VARIABLE_REG)
 
@@ -34,3 +35,28 @@ def warn(msg):
 
 def error(msg):
 	print "\033[31mError:\033[0m %s" % msg
+
+#
+# Time
+#
+
+time_stack = []
+
+time_print = True
+
+# Push a chrono on the chrono stack
+def start(desc = None):
+	time_stack.append((time.time(), desc))
+	if desc != None and time_print:
+		print "[%s] Start" % desc
+
+# Stop and pop a chrono from the stack
+def end(_print = True):
+	t, desc = time_stack.pop()
+	t = time.time() - t
+	if _print and time_print:
+		if desc == None:
+			print "Stop: %f" % t
+		else:
+			print "[%s] Stop: %f" % (desc, t)
+	return t

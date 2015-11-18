@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:39:40 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/17 12:50:42 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/17 23:51:22 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,7 +35,7 @@ MAX_LINE_LENGTH = 80
 
 INCLUDE_FLAGS_VAR = "INCLUDE_FLAGS"
 
-INCLUDE_REG = '^ *# *include *"([^/]+)/([^"]+)"'
+INCLUDE_REG = '^ *# *include *"(?:([^/]+)/)?([^"]+)"'
 GIT_SUBMODULE_REG = '^\s*path\s*=\s*(.+)$'
 VARIABLE_REG = '\?([a-zA-Z0-9_]+)\?'
 

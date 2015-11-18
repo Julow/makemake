@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/17 12:08:13 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/18 01:01:23 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -46,6 +46,8 @@ class Module():
 		self._include_map = None
 
 		self._private_dirs = None
+
+		self._required_modules = None
 
 	# Return list of source directories
 	def source_dirs(self):
@@ -91,20 +93,6 @@ class Module():
 				self._private_dirs += [(m, i) for i in m.public_includes]
 		return self._private_dirs
 
-	# Return a list of recursively included dirs [(module, dir)]
-	def included_dirs(self, private = True):
-		def helper(required, includes):
-			dirs = [(self, i) for i in includes]
-			for r in required:
-				for d in r.included_dirs(False):
-					if not d in dirs:
-						dirs.append(d)
-			return dirs
-		dirs = helper(self.public_required, self.public_includes)
-		if private:
-			dirs += helper(self.private_required, self.private_includes)
-		return dirs
-
 	# Return a list of recursively required modules
 	def required_modules(self, private = True):
 		def helper(required):
@@ -114,10 +102,11 @@ class Module():
 					if not d in modules:
 						modules.append(d)
 			return modules
-		modules = helper(self.public_required)
-		if private:
-			modules += helper(self.private_required)
-		return modules
+		if self._required_modules == None:
+			pub = helper(self.public_required)
+			priv = helper(self.private_required) + pub
+			self._required_modules = (pub, priv)
+		return self._required_modules[1] if private else self._required_modules[0]
 
 	# load source_files and header_files
 	def _find_file(self):
