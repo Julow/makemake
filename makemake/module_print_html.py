@@ -38,7 +38,10 @@ var ARROW_WIDTH = 0.8;
 var ARROW_COLOR = '#444444';
 var UNSELECT_ARROW_COLOR = '#F0F0F0';
 var DEP_ARROW_COLOR = '#D5D5D5';
-var MAX_SCALE = 2;
+var MIN_USER_SCALE = 0.1;
+var DEF_USER_SCALE = 1;
+var MAX_USER_SCALE = 10;
+var MAX_AUTO_SCALE = 2;
 
 var modules_by_name = {};
 var modules_by_level = {};
@@ -57,6 +60,11 @@ function contains(array, obj)
 		if (array[i] == obj)
 			return (true);
 	return (false);
+}
+
+Math.clamp = function(min, n, max)
+{
+	return (Math.min(Math.max(min, n), max));
 }
 // end lol
 
@@ -80,29 +88,52 @@ graph_width = graph_width * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H;
 
 var scale, offsetX, offsetY;
 
+var auto_scale, user_scale = DEF_USER_SCALE;
+
 var canvas_node = document.createElement("canvas");
-canvas_node.addEventListener("mousemove", check_cursor);
+canvas_node.addEventListener("mousemove", handle_cursor);
+canvas_node.addEventListener("wheel", handle_wheel);
+window.addEventListener("resize", handle_winsize);
 var canvas = canvas_node.getContext("2d");
 document.body.appendChild(canvas_node);
 
+handle_winsize();
+
 var selected_module;
 
-function check_winsize()
+function handle_winsize()
 {
 	var w = window.innerWidth;
 	var h = window.innerHeight;
 
 	canvas_node.width = w;
 	canvas_node.height = h;
-	scale = Math.min(MAX_SCALE, w / (BORDER_MARGIN * 2 + graph_width), h / (BORDER_MARGIN * 2 + graph_height));
-	offsetX = (w / scale - graph_width) / 2;
-	offsetY = (h / scale - graph_height) / 2;
-	canvas.scale(scale, scale);
-	update_modules_pos();
+	auto_scale = Math.min(MAX_AUTO_SCALE,
+		w / (BORDER_MARGIN * 2 + graph_width),
+		h / (BORDER_MARGIN * 2 + graph_height));
+	update_scale();
 	draw();
 }
 
-function check_cursor(e)
+function handle_wheel(e)
+{
+	var delta = e.wheelDelta / 1000 * user_scale;
+
+	user_scale = Math.clamp(MIN_USER_SCALE, delta + user_scale, MAX_USER_SCALE);
+	update_scale();
+	draw();
+}
+
+function update_scale()
+{
+	scale = auto_scale * user_scale;
+	offsetX = (canvas_node.width / scale - graph_width) / 2;
+	offsetY = (canvas_node.height / scale - graph_height) / 2;
+	canvas.setTransform(scale, 0, 0, scale, 0, 0);
+	update_modules_pos();
+}
+
+function handle_cursor(e)
 {
 	var x = e.offsetX / scale;
 	var y = e.offsetY / scale;
@@ -118,7 +149,7 @@ function check_cursor(e)
 			&& y >= m_y && y < (m_y + MODULE_HEIGHT))
 			selected_module = module;
 	});
-	if ((old && selected_module && old["name"] == selected_module["name"]))
+	if (!selected_module == !old)
 		return ;
 	draw();
 }
@@ -192,9 +223,17 @@ function draw_modules()
 	});
 }
 
+function clear_canvas()
+{
+	canvas.save();
+	canvas.setTransform(1, 0, 0, 1, 0, 0);
+	canvas.clearRect(0, 0, canvas_node.width, canvas_node.height);
+	canvas.restore();
+}
+
 function draw()
 {
-	canvas.clearRect(offsetX, offsetY, graph_width, graph_height);
+	clear_canvas();
 	function draw_arrow_of_dep(module, color)
 	{
 		for_each(module["dep"], function(dep_name)
@@ -215,9 +254,6 @@ function draw()
 		for_each(modules, function(m) { draw_arrow_of_dep(m, UNSELECT_ARROW_COLOR); });
 	draw_modules();
 }
-
-window.addEventListener("resize", check_winsize);
-check_winsize();
 
 }(""" + MODULES_MARK + """));
 
