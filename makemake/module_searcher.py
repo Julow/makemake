@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:46 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/11 01:10:11 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/18 23:58:39 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -86,7 +86,7 @@ def filter_unused(modules):
 	return used_map.values()
 
 #
-# search + module_parser.parse + resolve_refs + filter_unused + module_checker.check
+# parse_all + filter_unused + module_checker.check
 #
 
 def load():

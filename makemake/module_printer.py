@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/11/02 00:29:40 by juloo             #+#    #+#              #
-#    Updated: 2015/11/05 00:34:47 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/19 00:34:08 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,8 +25,16 @@ def gen(modules):
 	for m in modules:
 		height_map[m] = -1
 	for m in modules:
-		if height_map[m] < 0:
+		if m.is_main:
 			_set_height(height_map, m, 0)
+	max_height = 0
+	for m in modules:
+		if height_map[m] > max_height:
+			max_height = height_map[m]
+	for m in modules:
+		if m.is_main:
+			_raise_module(height_map, m, max_height)
+			height_map[m] = 0
 	module_data = {}
 	for m in modules:
 		module_data[m.name] = {
@@ -39,7 +47,7 @@ def gen(modules):
 		f.write(HTML.replace(MODULES_MARK, json.dumps(module_data.values())))
 	return tmp_file
 
-# Used to sort modules by dependency level
+# Sort modules in the graph by dependency level
 def _set_height(height_map, module, h):
 	height_map[module] = h
 	def loop(l):
@@ -48,3 +56,14 @@ def _set_height(height_map, module, h):
 				_set_height(height_map, m, h + 1)
 	loop(module.public_required)
 	loop(module.private_required)
+
+# Try to raise modules
+def _raise_module(height_map, module, max_height):
+	required = module.public_required + module.private_required
+	min_height = max_height
+	for m in required:
+		_raise_module(height_map, m, max_height)
+		if height_map[m] <= min_height:
+			min_height = height_map[m] - 1
+	if height_map[module] < min_height:
+		height_map[module] = min_height
