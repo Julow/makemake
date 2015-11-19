@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/18 23:58:25 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/19 00:55:30 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -173,7 +173,11 @@ def makefile_command(args):
 # print command
 
 def print_command(args):
-	file_name = module_printer.gen(module_searcher.filter_unused(module_searcher.parse_all()))
+	modules = module_searcher.parse_all()
+	used_modules = module_searcher.filter_unused(modules)
+	if len(args) == 0 or args[0] != '--all':
+		modules = used_modules
+	file_name = module_printer.gen(modules, set([m.name for m in used_modules]))
 	print "Module tree generated to %s" % file_name
 	utils.open_browser(file_name)
 
@@ -221,6 +225,8 @@ COMMANDS = {
 		Create a basic Makefile
 """),
 	"print": (print_command, "Open a web browser and draw modules", """
+		Options:
+			--all	Show unused modules
 """),
 }
 

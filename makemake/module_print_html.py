@@ -42,6 +42,7 @@ var MIN_USER_SCALE = 0.1;
 var DEF_USER_SCALE = 1;
 var MAX_USER_SCALE = 10;
 var MAX_AUTO_SCALE = 2;
+var UNUSED_ALPHA = 0.3;
 
 var modules_by_name = {};
 var modules_by_level = {};
@@ -212,6 +213,7 @@ function draw_modules()
 	{
 		x = module["x"];
 		y = module["y"];
+		canvas.globalAlpha = (module["used"] || module == selected_module) ? 1 : UNUSED_ALPHA;
 		canvas.fillStyle = MODULE_FILL_COLOR;
 		canvas.fillRect(x, y, MODULE_WIDTH, MODULE_HEIGHT);
 		canvas.strokeStyle = MODULE_BORDER_COLOR;
@@ -220,6 +222,7 @@ function draw_modules()
 		canvas.fillStyle = MODULE_TEXT_COLOR;
 		canvas.font = MODULE_TEXT_FONT;
 		canvas.fillText(module["name"], MODULE_WIDTH / 2 + x, MODULE_HEIGHT / 2 + y);
+		canvas.globalAlpha = 1;
 	});
 }
 

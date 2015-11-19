@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/11/02 00:29:40 by juloo             #+#    #+#              #
-#    Updated: 2015/11/19 00:34:08 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/19 00:55:52 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,27 +20,27 @@ from module_print_html import HTML, MODULES_MARK
 # Generate an HTML file that render modules
 # Return file name
 #
-def gen(modules):
+def gen(modules, used_modules):
 	height_map = {}
 	for m in modules:
 		height_map[m] = -1
 	for m in modules:
-		if m.is_main:
+		if height_map[m] < 0:
 			_set_height(height_map, m, 0)
 	max_height = 0
 	for m in modules:
 		if height_map[m] > max_height:
 			max_height = height_map[m]
 	for m in modules:
-		if m.is_main:
+		if height_map[m] == 0:
 			_raise_module(height_map, m, max_height)
-			height_map[m] = 0
 	module_data = {}
 	for m in modules:
 		module_data[m.name] = {
 			"name": m.name,
 			"dep": [dep.name for dep in m.public_required + m.private_required],
-			"level": height_map[m]
+			"level": height_map[m],
+			"used": m.name in used_modules
 		}
 	tmp_f, tmp_file = tempfile.mkstemp(".html", "makemake_")
 	with os.fdopen(tmp_f, "w") as f:
