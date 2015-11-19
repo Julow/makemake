@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 21:26:47 by juloo             #+#    #+#              #
-#    Updated: 2015/11/17 14:10:43 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/19 16:49:50 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -146,8 +146,6 @@ _debug:
 .PHONY: all clean fclean re debug rebug _debug
 """
 
-module_path_reg = re.compile(config.GIT_SUBMODULE_REG)
-
 # Guess project name
 def guess_name():
 	return os.path.basename(os.getcwd())
@@ -158,7 +156,7 @@ def guess_submodules():
 		with open('.gitmodules') as f:
 			modules = []
 			for line in f:
-				m = module_path_reg.match(line)
+				m = config.GIT_SUBMODULE_REG.match(line)
 				if m != None:
 					modules.append(m.group(1))
 			return modules

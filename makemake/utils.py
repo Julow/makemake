@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/11/03 09:35:59 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/18 00:30:33 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/19 16:50:20 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,10 +14,7 @@ import webbrowser
 import subprocess
 import sys
 import config
-import re
 import time
-
-VARIABLE_REG = re.compile(config.VARIABLE_REG)
 
 # Open url in a browser
 def open_browser(url):
@@ -28,7 +25,7 @@ def open_browser(url):
 
 # Substitute ?variables? in text
 def substitute_vars(text, v):
-	return VARIABLE_REG.sub(lambda m: v[m.group(1)] if m.group(1) in v else m.group(0), text)
+	return config.VARIABLE_REG.sub(lambda m: v[m.group(1)] if m.group(1) in v else m.group(0), text)
 
 def warn(msg):
 	print "\033[33mWarning:\033[0m %s" % msg

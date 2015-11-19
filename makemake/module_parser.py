@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/12 23:46:53 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/19 16:43:07 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,6 +31,7 @@ MODULE_INSTRUCTIONS = {
 	"local":	(1, -1,	lambda m, w, v: m.local(" ".join(w))),
 	"source":	(1, -1,	lambda m, w, v: m.source(w)),
 	"disable":	(1, 1,	lambda m, w, v: m.disable(w[0])),
+	"group":	(1, -1,	lambda m, w, v: m.group(w)),
 	"makefile":	(2, 2,	_instruction_makefile)
 }
 
@@ -92,7 +93,7 @@ def parse(file_name):
 					instr[2](current_module, args, visiblity)
 				else:
 					raise ParserError("Unknow instruction '%s'" % words[0])
-	except ParserError as e:
+	except config.BaseError as e:
 		raise ParserError("%s at line %d in %s \"%s\"" % (str(e), line_n, os.path.relpath(file_name), f_line));
 	except Exception as e:
 		raise ParserError("Cannot open %s: %s" % (file_name, str(e)))

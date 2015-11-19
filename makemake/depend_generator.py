@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/17 14:06:01 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/19 16:18:18 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -88,7 +88,7 @@ def out_inc_links(out, module, obj_files):
 	for dep in module.required_modules() + [module]:
 		if len(dep.public_includes) == 0:
 			continue
-		link = os.path.join(link_dir, dep.name.replace('::', '_'))
+		link = os.path.join(link_dir, dep.name)
 		dep_dir = os.path.relpath(dep.public_includes[0])
 		links.append((link, dep_dir))
 	if len(links) == 0:
@@ -136,7 +136,36 @@ def out_locals(out, module, obj_files):
 	# out.write("\n")
 
 def out_autos(out, module_list, module, sources, obj_files):
-	for o_file in sorted(obj_files.keys()):
+	obj_keys = sorted(obj_files.keys())
+	# # do for o_dir and public_links dependencies
+	# dep_map = {} # map<list<.o>, list<(.h, bool)>>
+	# for o_file in obj_keys:
+	# 	s_file = obj_files[o_file]
+	# 	headers = sources[s_file][0]
+	# 	for h_file in headers: # TODO cat all headers in a set
+	# 		dep_by = set()
+	# 		for o in obj_keys:
+	# 			if h_file in sources[obj_files[o]][0]:
+	# 				dep_by.add(o)
+	# 		dep_by = tuple(dep_by)
+	# 		if dep_by in dep_map:
+	# 			dep_map[dep_by].add((h_file, True))
+	# 		else:
+	# 			dep_map[dep_by] = set([(h_file, True)])
+	# # for o_file in obj_keys:
+	# 	# do "| dir" rules
+	# for dep_by in dep_map:
+	# 	sep = ":"
+	# 	offset = print_file_list(out, dep_by, 0, "", " ", " \\") + len(sep)
+	# 	out.write(sep)
+	# 	print_file_list(out, sorted([os.path.relpath(h) for h in dep_map[dep_by]]), offset, "\t", " ", " \\")
+	# 	out.write("\n")
+	# for o_file in obj_keys:
+	# 	s_file = obj_files[o_file]
+	# 	print_file_list(out, ["%s:" % o_file, os.path.relpath(s_file)], 0, "\t", " ", " \\")
+	# 	out.write("\n")
+	# # lol
+	for o_file in obj_keys:
 		s_file = obj_files[o_file]
 		dependencies = [os.path.relpath(f) for f in [s_file] + sorted(sources[s_file][0])]
 		prefix = "%s:" % o_file

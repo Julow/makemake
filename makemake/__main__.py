@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/19 00:55:30 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/19 18:51:41 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,6 +17,7 @@ import module_checker
 import dependency_finder
 import depend_generator
 import makefile_generator
+import group_checker
 import module
 import config
 import utils
@@ -28,18 +29,19 @@ import os
 
 #
 # TODO: public local instruction
-# TODO: opti using set and ordered_set
-# TODO: order depend.mk per dependency
-# TODO: "makefile import" to "mk import"
 # TODO: exclude dir (.gitignore)
-# TODO: relative includes
+# TODO: relative #include
 # TODO: ocaml
 # TODO: allow multiple main module
+# TODO: reduce depend file size
+# TODO: module group
+# 	check include loop by group
+# 	namespace notation
 #
 
 # list command
 
-def list_command(args):
+def list_command(args): # TODO: list indent by groupx
 	modules = module_searcher.parse_all()
 	used_map = {}
 	used_modules = module_searcher.filter_unused(modules)
@@ -60,6 +62,17 @@ def list_command(args):
 			print ("\t%s" if m.name in used_map else "\t\033[90m%s\033[0m") % f % (
 				max_len, m.name, os.path.relpath(m.base_dir)
 			)
+	# test
+	def print_group_tree(group, indent = 0, group_stack = []):
+		print "%*s%s::" % (indent * 4, "", "::".join(group_stack))
+		for g in group.sub_groups:
+			group_stack.append(g)
+			print_group_tree(group.sub_groups[g], indent + 1, group_stack)
+			group_stack.pop()
+		for m in group.modules:
+			print "%*s  %s%s" % (indent * 4, " ", "".join(["%s::" % g for g in group_stack]), m.name)
+	group_tree = group_checker.tree(modules)
+	print_group_tree(group_tree)
 
 # check command
 
@@ -101,6 +114,7 @@ def info_modules_command(args):
 			print "\tpublic require %s" % r.name
 		for r in m.private_required:
 			print "\tprivate require %s" % r.name
+		print "\tgroup %s" % " ".join(m.groups) # TODO: sort groups
 		for p in m.to_put:
 			print "\tput %s %s" % (p, " ".join(m.to_put[p]))
 		for l in m.locals:

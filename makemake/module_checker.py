@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/17 11:32:53 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/19 16:56:11 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,6 +35,8 @@ def check_include_loop(module, include_stack):
 
 # Check a module
 def _check_module(module, checked_modules):
+	if config.MODULE_NAME_REG.match(module.name) == None:
+		utils.warn("Module name \"%s\" contains invalid characters" % module.name)
 	if not os.path.isdir(module.base_dir):
 		raise CheckError("Invalid base dir: %s" % module.base_dir)
 	for i in module.public_includes:

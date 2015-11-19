@@ -6,9 +6,11 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:39:40 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/17 23:51:22 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/19 16:55:33 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
+
+import re
 
 MODULE_FILE_NAME = "module"
 
@@ -35,9 +37,10 @@ MAX_LINE_LENGTH = 80
 
 INCLUDE_FLAGS_VAR = "INCLUDE_FLAGS"
 
-INCLUDE_REG = '^ *# *include *"(?:([^/]+)/)?([^"]+)"'
-GIT_SUBMODULE_REG = '^\s*path\s*=\s*(.+)$'
-VARIABLE_REG = '\?([a-zA-Z0-9_]+)\?'
+INCLUDE_REG = re.compile('^ *# *include *"(?:([^/]+)/)?([^"]+)"')
+GIT_SUBMODULE_REG = re.compile('^\s*path\s*=\s*(.+)$')
+VARIABLE_REG = re.compile('\?([a-zA-Z0-9_]+)\?')
+MODULE_NAME_REG = re.compile('^[a-zA-Z0-9_\.-]+$')
 
 # Base exception for . error
 class BaseError(Exception):
