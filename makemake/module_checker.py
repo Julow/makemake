@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/19 16:56:11 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/21 18:09:28 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,21 +36,21 @@ def check_include_loop(module, include_stack):
 # Check a module
 def _check_module(module, checked_modules):
 	if config.MODULE_NAME_REG.match(module.name) == None:
-		utils.warn("Module name \"%s\" contains invalid characters" % module.name)
+		utils.warn("Module %s: Name contains invalid characters" % module.name)
 	if not os.path.isdir(module.base_dir):
-		raise CheckError("Invalid base dir: %s" % module.base_dir)
+		utils.warn("Module %s: Invalid base dir: %s" % (module.name, os.path.relpath(module.base_dir)))
 	for i in module.public_includes:
 		if not os.path.isdir(i):
 			raise CheckError("Invalid include: %s" % i)
 	for checked in checked_modules:
 		if module.base_dir == checked.base_dir:
-			raise CheckError("Modules '%s': Have the same base dir: %s" % (
-				checked.name, module.base_dir
+			raise CheckError("Modules %s: Have the same base dir: %s" % (
+				checked.name, os.path.relpath(module.base_dir)
 			))
 		for i in module.public_includes:
 			if i in checked.public_includes:
-				raise CheckError("Modules '%s': Include the same dir (%s)" % (
-					checked.name, i
+				raise CheckError("Modules %s: Include the same dir: %s" % (
+					checked.name, os.path.relpath(i)
 				))
 	for inc, _ in module.mk_imports:
 		if not os.path.isfile(inc):

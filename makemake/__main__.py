@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/19 18:51:41 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/21 17:39:14 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ import module_checker
 import dependency_finder
 import depend_generator
 import makefile_generator
-import group_checker
+import namespaces
 import module
 import config
 import utils
@@ -34,9 +34,7 @@ import os
 # TODO: ocaml
 # TODO: allow multiple main module
 # TODO: reduce depend file size
-# TODO: module group
-# 	check include loop by group
-# 	namespace notation
+# TODO: check include loop by namespace
 #
 
 # list command
@@ -63,16 +61,17 @@ def list_command(args): # TODO: list indent by groupx
 				max_len, m.name, os.path.relpath(m.base_dir)
 			)
 	# test
-	def print_group_tree(group, indent = 0, group_stack = []):
-		print "%*s%s::" % (indent * 4, "", "::".join(group_stack))
-		for g in group.sub_groups:
-			group_stack.append(g)
-			print_group_tree(group.sub_groups[g], indent + 1, group_stack)
-			group_stack.pop()
-		for m in group.modules:
-			print "%*s  %s%s" % (indent * 4, " ", "".join(["%s::" % g for g in group_stack]), m.name)
-	group_tree = group_checker.tree(modules)
-	print_group_tree(group_tree)
+	def print_namespaces(ns, indent = 0, ns_stack = []):
+		for g in ns.subs:
+			ns_stack.append(g)
+			print "%*s%s{" % (indent * 4, "", "::".join(ns_stack))
+			print_namespaces(ns.subs[g], indent + 1, ns_stack)
+			print "%*s}" % (indent * 4, "")
+			ns_stack.pop()
+		for m in sorted([m.name for m in ns.modules]):
+			print "%*s%s" % (indent * 4, "", m)
+	ns_tree = namespaces.tree(modules)
+	print_namespaces(ns_tree)
 
 # check command
 

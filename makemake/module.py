@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/19 17:24:34 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/21 17:38:54 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,6 @@ class Module():
 		self.private_required = []
 		self.to_put = {}
 		self.locals = []
-		self.groups = []
 		self.auto_enabled = True
 		self.mk_imports = []
 
@@ -155,9 +154,6 @@ class Module():
 		for w in words:
 			if not w in self._source_dirs:
 				self._source_dirs.append(w)
-
-	def group(self, group_names):
-		self.groups += group_names
 
 	def put(self, var, words):
 		if not var in self.to_put:

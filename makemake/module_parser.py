@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/19 16:43:07 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/21 13:26:34 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,7 +31,6 @@ MODULE_INSTRUCTIONS = {
 	"local":	(1, -1,	lambda m, w, v: m.local(" ".join(w))),
 	"source":	(1, -1,	lambda m, w, v: m.source(w)),
 	"disable":	(1, 1,	lambda m, w, v: m.disable(w[0])),
-	"group":	(1, -1,	lambda m, w, v: m.group(w)),
 	"makefile":	(2, 2,	_instruction_makefile)
 }
 
