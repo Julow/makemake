@@ -83,21 +83,29 @@ var graph_width = 0;
 var graph_height = (max_level + 2) * (MODULE_HEIGHT + MODULE_MARGIN_V) - MODULE_MARGIN_V; // lol
 
 for (var i = 0; i <= max_level; i++)
-	if (graph_width < modules_by_level[i].length)
+	if (modules_by_level[i] && graph_width < modules_by_level[i].length)
 		graph_width = modules_by_level[i].length;
 graph_width = graph_width * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H;
 
 var scale, offsetX, offsetY;
 
+var user_offsetX = 0;
+var user_offsetY = 0;
+
+var mouse_down = null;
+
 var auto_scale, user_scale = DEF_USER_SCALE;
 
 var canvas_node = document.createElement("canvas");
 canvas_node.addEventListener("mousemove", handle_cursor);
+canvas_node.addEventListener("mouseup", handle_mouse_up);
+canvas_node.addEventListener("mousedown", handle_mouse_down);
 canvas_node.addEventListener("wheel", handle_wheel);
 window.addEventListener("resize", handle_winsize);
 var canvas = canvas_node.getContext("2d");
 document.body.appendChild(canvas_node);
 
+update_modules_pos();
 handle_winsize();
 
 var selected_module;
@@ -116,6 +124,21 @@ function handle_winsize()
 	draw();
 }
 
+function handle_mouse_up(e)
+{
+	mouse_down = null;
+}
+
+function handle_mouse_down(e)
+{
+	mouse_down = {
+		offsetX: user_offsetX,
+		offsetY: user_offsetY,
+		startX: e.offsetX,
+		startY: e.offsetY
+	};
+}
+
 function handle_wheel(e)
 {
 	var delta = e.wheelDelta / 1000 * user_scale;
@@ -128,16 +151,25 @@ function handle_wheel(e)
 function update_scale()
 {
 	scale = auto_scale * user_scale;
-	offsetX = (canvas_node.width / scale - graph_width) / 2;
-	offsetY = (canvas_node.height / scale - graph_height) / 2;
+	offsetX = (canvas_node.width / scale - graph_width) / 2 + user_offsetX;
+	offsetY = (canvas_node.height / scale - graph_height) / 2 + user_offsetY;
 	canvas.setTransform(scale, 0, 0, scale, 0, 0);
-	update_modules_pos();
+	canvas.translate(offsetX, offsetY);
 }
 
 function handle_cursor(e)
 {
-	var x = e.offsetX / scale;
-	var y = e.offsetY / scale;
+	if (mouse_down)
+	{
+		user_offsetX = (e.offsetX - mouse_down.startX) / scale + mouse_down.offsetX;
+		user_offsetY = (e.offsetY - mouse_down.startY) / scale + mouse_down.offsetY;
+		update_scale();
+		draw();
+		return ;
+	}
+
+	var x = e.offsetX / scale - offsetX;
+	var y = e.offsetY / scale - offsetY;
 	var old = selected_module;
 
 	selected_module = null;
@@ -157,13 +189,15 @@ function handle_cursor(e)
 
 function update_modules_pos()
 {
-	var y = Math.ceil((graph_height - ((MODULE_HEIGHT + MODULE_MARGIN_V) * (max_level + 1) - MODULE_MARGIN_V)) / 2 + offsetY);
+	var y = Math.ceil((graph_height - ((MODULE_HEIGHT + MODULE_MARGIN_V) * (max_level + 1) - MODULE_MARGIN_V)) / 2);
 	var x, mods, level, i;
 
 	for (level = max_level; level >= 0; level--)
 	{
+		if (!modules_by_level[level])
+			continue ;
 		mods = modules_by_level[level];
-		x = Math.ceil((graph_width - (mods.length * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H)) / 2 + offsetX);
+		x = Math.ceil((graph_width - (mods.length * (MODULE_WIDTH + MODULE_MARGIN_H) - MODULE_MARGIN_H)) / 2);
 		for (i = 0; i < mods.length; i++)
 		{
 			mods[i]["x"] = x;

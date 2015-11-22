@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/21 17:39:14 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/21 19:55:10 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -60,18 +60,6 @@ def list_command(args): # TODO: list indent by groupx
 			print ("\t%s" if m.name in used_map else "\t\033[90m%s\033[0m") % f % (
 				max_len, m.name, os.path.relpath(m.base_dir)
 			)
-	# test
-	def print_namespaces(ns, indent = 0, ns_stack = []):
-		for g in ns.subs:
-			ns_stack.append(g)
-			print "%*s%s{" % (indent * 4, "", "::".join(ns_stack))
-			print_namespaces(ns.subs[g], indent + 1, ns_stack)
-			print "%*s}" % (indent * 4, "")
-			ns_stack.pop()
-		for m in sorted([m.name for m in ns.modules]):
-			print "%*s%s" % (indent * 4, "", m)
-	ns_tree = namespaces.tree(modules)
-	print_namespaces(ns_tree)
 
 # check command
 
