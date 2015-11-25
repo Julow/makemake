@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/18 00:58:45 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/26 00:30:15 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -49,7 +49,7 @@ def track_module(module):
 	dependency_map = {}
 	include_stack = collections.OrderedDict()
 	included_dirs = set()
-	for source, ext in module.source_files():
+	for source, ext, _ in module.source_files():
 		dependency_map[source] = (track_file(module, source, included_dirs, include_stack), ext)
 	for dep in module.private_required:
 		ok = False
@@ -60,7 +60,7 @@ def track_module(module):
 		if not ok:
 			utils.warn("Module %s: Useless dependency '%s'" % (module.name, dep.name))
 	included_dirs = set()
-	for header, ext in module.header_files():
+	for header, ext, _ in module.header_files():
 		dependency_map[header] = (track_file(module, header, included_dirs, include_stack), ext)
 	for dep in module.public_required:
 		ok = False

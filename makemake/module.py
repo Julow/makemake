@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/21 17:38:54 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/26 00:30:05 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -69,7 +69,7 @@ class Module():
 	def include_map(self):
 		if self._include_map == None:
 			self._include_map = {}
-			for file_name, _ in self.source_files() + self.header_files():
+			for file_name, _, _ in self.source_files() + self.header_files():
 				included = []
 				with open(file_name, "r") as f:
 					for line in f:
@@ -118,7 +118,7 @@ class Module():
 						for file_name in ls:
 							for ext in config.EXTENSIONS:
 								if file_name.endswith(ext["ext"]):
-									self._source_files.append((os.path.join(curr_dir, file_name), ext))
+									self._source_files.append((os.path.join(curr_dir, file_name), ext, source_dir))
 		for inc_dir in self.public_includes:
 			for curr_dir, dirs, ls, in os.walk(inc_dir):
 				if os.path.basename(curr_dir) in config.EXCLUDE_DIRS:
@@ -127,7 +127,7 @@ class Module():
 					for file_name in ls:
 						for ext in config.EXTENSIONS:
 							if file_name.endswith(ext["ext"]):
-								self._header_files.append((os.path.join(curr_dir, file_name), ext))
+								self._header_files.append((os.path.join(curr_dir, file_name), ext, inc_dir))
 
 	#
 	# instructions

@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/21 18:10:46 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/26 00:34:39 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -42,6 +42,7 @@ def out(out, modules, source_map):
 		"O_FILES": obj_file_list
 		# "PUBLIC_DIRS": public_dirs
 	})
+	# out_inc_links(out, modules)
 	for m in modules:
 		out.write("\n# module %s\n" % m.name)
 		out_mk_imports(out, m)
@@ -82,10 +83,26 @@ def out_mk_imports(out, mod):
 		else:
 			out.write("include %s" % os.path.relpath(file_name))
 
+# def out_inc_links(out, modules):
+# 	base_link_dir = os.path.join(config.OBJ_DIR, config.PUBLIC_LINK_DIR)
+# 	link_dirs = set()
+# 	links = []
+# 	for m in modules:
+# 		base_dir = os.path.join(base_link_dir, "/".join(m.name.split(config.NAMESPACES_SEPARATOR)[0:-1]))
+# 		for header, _, inc_dir in m.header_files():
+# 			h_link = os.path.join(base_dir, os.path.relpath(header, inc_dir))
+# 			link_dirs.add(os.path.dirname(h_link))
+# 			links.append((h_link, header))
+# 	for l in link_dirs:
+# 		print "dir: %s" % l
+# 	for link, dst in links:
+# 		print "link: %-40s -> %s" % (link, os.path.relpath(dst))
+
 def out_inc_links(out, module, obj_files):
 	base_link_dir = os.path.join(config.OBJ_DIR, os.path.relpath(module.base_dir), config.PUBLIC_LINK_DIR)
 	link_dirs = set()
 	links = []
+	# Build public dirs list
 	for dep in module.required_modules() + [module]:
 		if len(dep.public_includes) == 0:
 			continue
@@ -95,28 +112,33 @@ def out_inc_links(out, module, obj_files):
 		links.append((link, dep_dir))
 	if len(links) == 0:
 		return
+	# out public dirs base dir
 	prefix = ":"
 	offset = print_file_list(out, [l for l, _ in links], 0, "", " ", " \\") + len(prefix)
 	out.write(prefix)
 	print_file_list(out, ["|"] + sorted(["%s/" % l for l in link_dirs]), offset, "\t", " ", " \\")
 	out.write("\n")
+	# out link rules
 	for link, dep_dir in links:
 		prefix = "%s:" % link
 		out.write(prefix)
 		print_file_list(out, [dep_dir], len(prefix), "\t", " ", " \\")
 		out.write("\n")
 	out.write("\n")
+	# PUBLIC_LINKS var
 	prefix = "PUBLIC_LINKS +="
 	out.write(prefix)
 	print_file_list(out, [l for l, _ in links], len(prefix), "\t", " ", " \\")
 	out.write("\n")
 	out.write("\n")
 	obj_names = sorted(obj_files.keys())
+	# INCLUDE_FLAGS locals
 	prefix = ":"
 	offset = print_file_list(out, obj_names, 0, "", " ", " \\") + len(prefix)
 	out.write(prefix)
 	print_file_list(out, [config.INCLUDE_FLAGS_VAR, "+=", "-I%s" % base_link_dir] + ["-I%s" % os.path.relpath(d) for d in module.private_includes], offset, "\t", " ", " \\")
 	out.write("\n")
+	# depend for links
 	prefix = ":"
 	offset = print_file_list(out, obj_names, 0, "", " ", " \\") + len(prefix)
 	out.write(prefix)
