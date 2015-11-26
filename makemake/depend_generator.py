@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/26 13:32:14 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/26 14:42:30 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,6 +28,7 @@ def gen(file_name, modules, source_map):
 
 def out(out, modules, source_map):
 	obj_files = {}
+	# Out vars
 	sorted_modules = sorted(modules, key=lambda m: m.name)
 	obj_file_list = []
 	for m in sorted_modules:
@@ -42,14 +43,113 @@ def out(out, modules, source_map):
 		"O_FILES": obj_file_list
 		# "PUBLIC_DIRS": public_dirs
 	})
-	out_inc_links(out, modules)
+	links = out_link_vars(out, modules)
 	for m in modules:
-		out.write("\n# module %s\n" % m.name)
-		out_mk_imports(out, m)
-		# out_inc_links(out, m, obj_files[m])
-		out_locals(out, m, obj_files[m])
-		out_autos(out, modules, m, source_map[m], obj_files[m])
+		out_module(out, m, obj_files[m])
+	out_obj_dirs(out, obj_files)
+	out_link_rules(out, links)
+	out_dependencies(out, modules, source_map, obj_files)
 
+#
+
+def out_link_vars(out, modules):
+	base_link_dir = os.path.join(config.OBJ_DIR, config.PUBLIC_LINK_DIR)
+	link_dirs = set()
+	links = []
+	for m in modules:
+		base_dir = os.path.join(base_link_dir, "/".join(m.name.split(config.NAMESPACES_SEPARATOR)[0:-1]))
+		for header, _, inc_dir in m.header_files():
+			h_link = os.path.join(base_dir, os.path.relpath(header, inc_dir))
+			tmp = h_link
+			while len(tmp) > len(base_link_dir):
+				tmp = os.path.dirname(tmp)
+				link_dirs.add(tmp)
+			links.append((h_link, header))
+	# INCLUDE_FLAGS var
+	prefix = "%s +=" % config.INCLUDE_FLAGS_VAR
+	out.write(prefix)
+	print_file_list(out, ["-I%s" % base_link_dir], len(prefix))
+	out.write("\n")
+	# PUBLIC_LINKS var
+	prefix = "%s +=" % config.PUBLIC_LINKS_VAR
+	out.write(prefix)
+	print_file_list(out, [l for l, _ in links], len(prefix))
+	out.write("\n")
+	# PUBLIC_LINK_DIRS var
+	prefix = "%s +=" % config.PUBLIC_LINK_DIRS
+	out.write(prefix)
+	print_file_list(out, sorted(link_dirs), len(prefix))
+	out.write("\n")
+	out.write("\n")
+	out.write("$(%s): | $(%s)\n" % (config.PUBLIC_LINKS_VAR, config.PUBLIC_LINK_DIRS))
+	out.write("\n")
+	return links
+
+#
+
+def out_link_rules(out, links):
+	out.write("# public links\n")
+	for link, dst in links:
+		print_file_list(out, ["%s:" % link, os.path.relpath(dst)], 0, "")
+		out.write("\n")
+	out.write("\n")
+
+#
+
+def out_module(out, mod, obj_files):
+	out.write("\n# module %s\n" % mod.name)
+	obj_names = sorted(obj_files.keys())
+	# mk imports
+	for file_name, copy in mod.mk_imports:
+		if copy:
+			with open(file_name) as f:
+				out.write(utils.substitute_vars(f.read(), module.get_variables(mod)))
+		else:
+			out.write("include %s" % os.path.relpath(file_name))
+	# rules
+	for o_file in obj_names:
+		prefix = "%s:" % o_file
+		out.write(prefix)
+		print_file_list(out, [os.path.relpath(obj_files[o_file])], len(prefix))
+		out.write("\n")
+	# locals
+	if len(obj_names) > 0 and len(mod.locals) > 0:
+		out.write("\n")
+		for l in mod.locals:
+			print_file_list(out, obj_names, 0, "")
+			out.write(": %s\n" % l)
+		out.write("\n")
+
+#
+
+def out_obj_dirs(out, obj_files):
+	out.write("# obj dirs\n")
+	for m in obj_files:
+		obj_dirs = set()
+		for obj in obj_files[m]:
+			obj_dirs.add(os.path.dirname(obj))
+		if len(obj_dirs) > 0:
+			sep = ":"
+			offset = print_file_list(out, obj_files[m].keys(), 0, "") + len(sep)
+			out.write(sep)
+			print_file_list(out, ["|"] + ["%s/" % d for d in sorted(obj_dirs)], offset)
+			out.write("\n")
+	out.write("\n")
+
+#
+
+def out_dependencies(out, modules, src_files, obj_files):
+	out.write("# dependencies\n")
+	for m in obj_files:
+		for o_file in obj_files[m]:
+			dependencies = [os.path.relpath(f) for f in sorted(src_files[m][obj_files[m][o_file]][0])]
+			prefix = "%s:" % o_file
+			out.write(prefix)
+			print_file_list(out, dependencies, len(prefix))
+			out.write("\n")
+
+#
+#
 #
 
 def get_obj_files(sources):
@@ -72,109 +172,12 @@ def out_puts(out, modules, extra):
 			p = p + extra[var]
 		prefix = "%s +=" % var
 		out.write(prefix)
-		print_file_list(out, p, len(prefix), "\t", " ", " \\")
-		out.write("\n")
-
-def out_mk_imports(out, mod):
-	for file_name, copy in mod.mk_imports:
-		if copy:
-			with open(file_name) as f:
-				out.write(utils.substitute_vars(f.read(), module.get_variables(mod)))
-		else:
-			out.write("include %s" % os.path.relpath(file_name))
-
-def out_inc_links(out, modules):
-	base_link_dir = os.path.join(config.OBJ_DIR, config.PUBLIC_LINK_DIR)
-	link_dirs = set()
-	links = []
-	for m in modules:
-		base_dir = os.path.join(base_link_dir, "/".join(m.name.split(config.NAMESPACES_SEPARATOR)[0:-1]))
-		for header, _, inc_dir in m.header_files():
-			h_link = os.path.join(base_dir, os.path.relpath(header, inc_dir))
-			tmp = h_link
-			while len(tmp) > len(base_link_dir):
-				tmp = os.path.dirname(tmp)
-				link_dirs.add(tmp)
-			links.append((h_link, header))
-	# INCLUDE_FLAGS var
-	prefix = "%s +=" % config.INCLUDE_FLAGS_VAR
-	out.write(prefix)
-	print_file_list(out, ["-I%s" % base_link_dir], len(prefix), "\t", " ", " \\")
-	out.write("\n")
-	# PUBLIC_LINKS var
-	prefix = "%s +=" % config.PUBLIC_LINKS_VAR
-	out.write(prefix)
-	print_file_list(out, [l for l, _ in links], len(prefix), "\t", " ", " \\")
-	out.write("\n")
-	# PUBLIC_LINK_DIRS var
-	prefix = "%s +=" % config.PUBLIC_LINK_DIRS
-	out.write(prefix)
-	print_file_list(out, sorted(link_dirs), len(prefix), "\t", " ", " \\")
-	out.write("\n")
-	out.write("\n")
-	out.write("$(%s): | $(%s)\n" % (config.PUBLIC_LINKS_VAR, config.PUBLIC_LINK_DIRS))
-	out.write("\n")
-	# links rules
-	for link, dst in links:
-		print_file_list(out, ["%s:" % link, os.path.relpath(dst)], 0, "", " ", " \\")
-		out.write("\n")
-	out.write("\n")
-
-def out_locals(out, module, obj_files):
-	obj_names = sorted(obj_files.keys())
-	if len(obj_names) == 0:
-		return
-	for l in module.locals:
-		print_file_list(out, obj_names, 0, "", " ", " \\")
-		out.write(": %s\n" % l)
-	# prefix = ": %s +=" % config.INCLUDE_FLAGS_VAR
-	# offset = len(prefix) + print_file_list(out, obj_names, 0, "", " ", " \\")
-	# out.write(prefix)
-	# print_file_list(out, ["-I" + os.path.relpath(i) for _, i in sorted(module.included_dirs())], offset, "\t", " ", " \\")
-	# out.write("\n")
-
-def out_autos(out, module_list, module, sources, obj_files):
-	obj_keys = sorted(obj_files.keys())
-	# # do for o_dir and public_links dependencies
-	# dep_map = {} # map<list<.o>, list<(.h, bool)>>
-	# for o_file in obj_keys:
-	# 	s_file = obj_files[o_file]
-	# 	headers = sources[s_file][0]
-	# 	for h_file in headers: # TODO cat all headers in a set
-	# 		dep_by = set()
-	# 		for o in obj_keys:
-	# 			if h_file in sources[obj_files[o]][0]:
-	# 				dep_by.add(o)
-	# 		dep_by = tuple(dep_by)
-	# 		if dep_by in dep_map:
-	# 			dep_map[dep_by].add((h_file, True))
-	# 		else:
-	# 			dep_map[dep_by] = set([(h_file, True)])
-	# # for o_file in obj_keys:
-	# 	# do "| dir" rules
-	# for dep_by in dep_map:
-	# 	sep = ":"
-	# 	offset = print_file_list(out, dep_by, 0, "", " ", " \\") + len(sep)
-	# 	out.write(sep)
-	# 	print_file_list(out, sorted([os.path.relpath(h) for h in dep_map[dep_by]]), offset, "\t", " ", " \\")
-	# 	out.write("\n")
-	# for o_file in obj_keys:
-	# 	s_file = obj_files[o_file]
-	# 	print_file_list(out, ["%s:" % o_file, os.path.relpath(s_file)], 0, "\t", " ", " \\")
-	# 	out.write("\n")
-	# # lol
-	for o_file in obj_keys:
-		s_file = obj_files[o_file]
-		dependencies = [os.path.relpath(f) for f in [s_file] + sorted(sources[s_file][0])]
-		prefix = "%s:" % o_file
-		dep_list = dependencies + ["| %s/" % os.path.dirname(o_file)]
-		out.write(prefix)
-		print_file_list(out, dep_list, len(prefix), "\t", " ", " \\")
+		print_file_list(out, p, len(prefix))
 		out.write("\n")
 
 #
 
-def print_file_list(out, files, offset, indent, sep, endl):
+def print_file_list(out, files, offset, indent = "\t", sep = " ", endl = " \\"):
 	indent_len = len(indent.expandtabs(4))
 	sep_len = len(sep)
 	endl_len = len(endl)

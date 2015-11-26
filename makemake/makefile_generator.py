@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 21:26:47 by juloo             #+#    #+#              #
-#    Updated: 2015/11/19 16:49:50 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/26 13:56:30 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -69,7 +69,7 @@ PRINT_FILE		:= .tmp_print
 SHELL			:= /bin/bash
 
 # Default rule (need to be before any include)
-all: $(SUBMODULE_RULES) libs_rules
+all: $(SUBMODULE_RULES) init_rules
 ifeq ($(COLUMN_OUTPUT),0)
 	make -j$(JOBS) $(NAME)
 else
@@ -96,7 +96,7 @@ endif
 # Include $(O_FILES) and dependencies
 include $(DEPEND)
 
-libs_rules: $(LIBS_RULES)
+init_rules: $(LIBS_RULES) $(PUBLIC_LINKS)
 
 # Linking
 $(NAME): $(LINK_DEPENDS) $(O_FILES)
@@ -115,7 +115,7 @@ $(SUBMODULE_RULES):
 
 # Create include links
 $(PUBLIC_LINKS):
-	ln -s $(abspath $<) $@
+	ln -fs $(abspath $<) $@
 # Create obj directories
 $(O_DIR)/%%/:
 	mkdir -p $@
@@ -130,6 +130,7 @@ rebug: fclean debug
 clean:
 	rm -f $(PRINT_FILE)
 	rm -f $(O_FILES) $(PUBLIC_LINKS)
+	# rmdir $(PUBLIC_LINK_DIRS)
 
 # Clean everything
 fclean: clean
@@ -143,7 +144,7 @@ _debug:
 	$(eval DEBUG_MODE = 1)
 
 .SILENT:
-.PHONY: all clean fclean re debug rebug _debug
+.PHONY: all clean fclean re debug rebug _debug init_rules
 """
 
 # Guess project name
