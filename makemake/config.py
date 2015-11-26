@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:39:40 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/23 23:34:20 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/26 13:31:55 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,6 +31,8 @@ EXTENSIONS = [
 OBJ_DIR = "$(O_DIR)"
 
 PUBLIC_LINK_DIR = "_public"
+PUBLIC_LINKS_VAR = "PUBLIC_LINKS"
+PUBLIC_LINK_DIRS = "PUBLIC_LINK_DIRS"
 
 MAKEFILE_NAME = "Makefile"
 DEPEND_FILE_NAME = "depend.mk"
@@ -39,7 +41,7 @@ MAX_LINE_LENGTH = 80
 
 INCLUDE_FLAGS_VAR = "INCLUDE_FLAGS"
 
-INCLUDE_REG = re.compile('^ *# *include *"(?:([^/]+)/)*([^"]+)"')
+INCLUDE_REG = re.compile('^ *# *include *"(?:([^/]+)/)?([^"]+)"') # TODO: fix
 GIT_SUBMODULE_REG = re.compile('^\s*path\s*=\s*(.+)$')
 VARIABLE_REG = re.compile('\?([a-zA-Z0-9_]+)\?')
 MODULE_NAME_REG = re.compile('^(?:[a-zA-Z0-9_\.-]|::)+$')
