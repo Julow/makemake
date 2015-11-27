@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/27 15:38:21 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/27 20:45:56 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,20 +35,20 @@ def out(out, modules, source_map):
 		o = get_obj_files(source_map[m])
 		obj_file_list += sorted(o.keys())
 		obj_files[m] = o
-	public_dirs = []
-	for m in sorted_modules:
-		if len(m.public_includes) > 0:
-			public_dirs += sorted([os.path.relpath(p) for p in m.public_includes])
+	# public_dirs = []
+	# for m in sorted_modules:
+	# 	if len(m.public_includes) > 0:
+	# 		public_dirs += sorted([os.path.relpath(p) for p in m.public_includes])
 	out_puts(out, modules, {
 		"O_FILES": obj_file_list
 		# "PUBLIC_DIRS": public_dirs
 	})
 	links = out_link_vars(out, modules)
-	for m in modules:
-		out_module(out, m, obj_files[m])
+	for m in sorted_modules:
+		out_module(out, m, source_map[m], obj_files[m])
 	out_obj_dirs(out, obj_files)
 	out_link_rules(out, links)
-	out_dependencies(out, modules, source_map, obj_files)
+	# out_dependencies(out, modules, source_map, obj_files)
 
 #
 
@@ -65,6 +65,7 @@ def out_link_vars(out, modules):
 				tmp = os.path.dirname(tmp)
 				link_dirs.add(tmp)
 			links.append((h_link, header))
+	links = sorted(links)
 	# INCLUDE_FLAGS var
 	prefix = "%s +=" % config.INCLUDE_FLAGS_VAR
 	out.write(prefix)
@@ -92,11 +93,10 @@ def out_link_rules(out, links):
 	for link, dst in links:
 		print_file_list(out, ["%s:" % link, os.path.relpath(dst)], 0, "")
 		out.write("\n")
-	out.write("\n")
 
 #
 
-def out_module(out, mod, obj_files):
+def out_module(out, mod, src_files, obj_files):
 	out.write("# module %s\n" % mod.name)
 	obj_names = sorted(obj_files.keys())
 	# mk imports
@@ -108,9 +108,10 @@ def out_module(out, mod, obj_files):
 			out.write("include %s" % os.path.relpath(file_name))
 	# rules
 	for o_file in obj_names:
+		dependencies = [os.path.relpath(f) for f in [obj_files[o_file]] + sorted(src_files[obj_files[o_file]][0])]
 		prefix = "%s:" % o_file
 		out.write(prefix)
-		print_file_list(out, [os.path.relpath(obj_files[o_file])], len(prefix))
+		print_file_list(out, dependencies, len(prefix))
 		out.write("\n")
 	# locals
 	if len(obj_names) > 0 and len(mod.locals) > 0:
@@ -141,15 +142,15 @@ def out_obj_dirs(out, obj_files):
 
 #
 
-def out_dependencies(out, modules, src_files, obj_files):
-	out.write("# dependencies\n")
-	for m in obj_files:
-		for o_file in obj_files[m]:
-			dependencies = [os.path.relpath(f) for f in sorted(src_files[m][obj_files[m][o_file]][0])]
-			prefix = "%s:" % o_file
-			out.write(prefix)
-			print_file_list(out, dependencies, len(prefix))
-			out.write("\n")
+# def out_dependencies(out, modules, src_files, obj_files):
+# 	out.write("# dependencies\n")
+# 	for m in obj_files:
+# 		for o_file in obj_files[m]:
+# 			dependencies = [os.path.relpath(f) for f in sorted(src_files[m][obj_files[m][o_file]][0])]
+# 			prefix = "%s:" % o_file
+# 			out.write(prefix)
+# 			print_file_list(out, dependencies, len(prefix))
+# 			out.write("\n")
 
 #
 #
