@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/26 14:42:30 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/27 15:38:21 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -78,7 +78,7 @@ def out_link_vars(out, modules):
 	# PUBLIC_LINK_DIRS var
 	prefix = "%s +=" % config.PUBLIC_LINK_DIRS
 	out.write(prefix)
-	print_file_list(out, sorted(link_dirs), len(prefix))
+	print_file_list(out, ["%s/" % d for d in sorted(link_dirs)], len(prefix))
 	out.write("\n")
 	out.write("\n")
 	out.write("$(%s): | $(%s)\n" % (config.PUBLIC_LINKS_VAR, config.PUBLIC_LINK_DIRS))
@@ -97,7 +97,7 @@ def out_link_rules(out, links):
 #
 
 def out_module(out, mod, obj_files):
-	out.write("\n# module %s\n" % mod.name)
+	out.write("# module %s\n" % mod.name)
 	obj_names = sorted(obj_files.keys())
 	# mk imports
 	for file_name, copy in mod.mk_imports:
@@ -116,9 +116,12 @@ def out_module(out, mod, obj_files):
 	if len(obj_names) > 0 and len(mod.locals) > 0:
 		out.write("\n")
 		for l in mod.locals:
-			print_file_list(out, obj_names, 0, "")
-			out.write(": %s\n" % l)
-		out.write("\n")
+			sep = ":"
+			offset = print_file_list(out, obj_names, 0, "") + len(sep)
+			out.write(sep)
+			print_file_list(out, [l], offset)
+			out.write("\n")
+	out.write("\n")
 
 #
 
