@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/27 20:45:56 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/28 01:34:53 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -114,13 +114,16 @@ def out_module(out, mod, src_files, obj_files):
 		print_file_list(out, dependencies, len(prefix))
 		out.write("\n")
 	# locals
-	if len(obj_names) > 0 and len(mod.locals) > 0:
+	lvars = mod.locals
+	if len(mod.private_includes) > 0:
+		lvars += ["INCLUDE_FLAGS += %s" % " ".join(["-I%s" % os.path.relpath(d) for d in mod.private_includes])]
+	if len(obj_names) > 0 and len(lvars) > 0:
 		out.write("\n")
-		for l in mod.locals:
+		for l in lvars:
 			sep = ":"
 			offset = print_file_list(out, obj_names, 0, "") + len(sep)
 			out.write(sep)
-			print_file_list(out, [l], offset)
+			print_file_list(out, l.split(), offset)
 			out.write("\n")
 	out.write("\n")
 
