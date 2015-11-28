@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:39:40 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/26 13:31:55 by jaguillo         ###   ########.fr        #
+#    Updated: 2015/11/28 21:37:51 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,6 +29,9 @@ EXTENSIONS = [
 ]
 
 OBJ_DIR = "$(O_DIR)"
+
+OBJ_DIR_TREE_VAR = "OBJ_DIR_TREE"
+OBJ_FILES_VAR = "O_FILES"
 
 PUBLIC_LINK_DIR = "_public"
 PUBLIC_LINKS_VAR = "PUBLIC_LINKS"
