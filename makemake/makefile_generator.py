@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 21:26:47 by juloo             #+#    #+#              #
-#    Updated: 2015/11/28 22:09:49 by juloo            ###   ########.fr        #
+#    Updated: 2015/11/28 22:25:31 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -128,9 +128,9 @@ rebug: fclean debug
 
 # Clean obj files
 clean:
-	rm -f $(PRINT_FILE)
-	rm -f $(O_FILES) $(PUBLIC_LINKS)
-	rm -df $(OBJ_DIR_TREE)
+	-rm -f $(PRINT_FILE) 2> /dev/null
+	-rm -f $(O_FILES) $(PUBLIC_LINKS) 2> /dev/null
+	-rm -df $(OBJ_DIR_TREE) 2> /dev/null
 
 # Clean everything
 fclean: clean
