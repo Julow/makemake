@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 21:26:47 by juloo             #+#    #+#              #
-#    Updated: 2015/11/28 22:25:31 by juloo            ###   ########.fr        #
+#    Updated: 2015/12/01 23:57:03 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -50,13 +50,20 @@ O_DIR			:= _objs
 JOBS			:= 4
 
 # Column output
-COLUMN_OUTPUT	:= 1
+COLUMN_OUTPUT	?= 1
+_COLUMN_OUTPUT	:= 0
+
 
 ifeq ($(COLUMN_OUTPUT),0)
 	PRINT_OK	= printf '\\033[32m$<\\033[0m\\n'
 	PRINT_LINK	= printf '\\033[32m$@\\033[0m\\n'
 else
-	PRINT_OK	= echo $< >> $(PRINT_FILE)
+	PRINT_OK	= (LINE_LENGTH=$$((`cat $(PRINT_FILE) 2>/dev/null`+0));		\\
+		if [ $$LINE_LENGTH -ge 0 ]; then									\\
+		if [ $$LINE_LENGTH -ge $(PER_LINE) ]; then LINE_LENGTH=0; echo; fi; \\
+		echo $$(($$LINE_LENGTH + 1)) > $(PRINT_FILE);						\\
+		printf "\\033[32m%%-$(MAX_LEN)s\\033[0m " "$<";						\\
+		fi) || (echo "-1" > $(PRINT_FILE) && false)
 	PRINT_LINK	= printf '\\n\\033[32m$@\\033[0m\\n'
 endif
 
@@ -66,35 +73,29 @@ DEPEND			:= %(depend_file)s
 # tmp
 SUBMODULE_RULES	:= $(addsuffix /.git,$(SUBMODULES))
 PRINT_FILE		:= .tmp_print
-SHELL			:= /bin/bash
 
 # Default rule (need to be before any include)
 all: $(SUBMODULE_RULES) init
-ifeq ($(COLUMN_OUTPUT),0)
-	make -j$(JOBS) $(NAME)
-else
-	MAX_LEN=0;														\\
-	for f in $(patsubst $(O_DIR)/%%,%%,$(O_FILES)); do				\\
-		if [[ $${#f} -gt $$MAX_LEN ]]; then MAX_LEN=$${#f}; fi;		\\
-	done;															\\
-	PER_LINE=$$((`tput cols` / $$(($$MAX_LEN + 2))));				\\
-	CURR=0;															\\
-	touch $(PRINT_FILE);											\\
-	tail -n0 -f $(PRINT_FILE) | while read l;						\\
-	do																\\
-		if [[ $$CURR -ge $$PER_LINE ]]; then CURR=0; echo; fi;		\\
-		CURR=$$(($$CURR + 1));										\\
-		printf "\\033[32m%%-*s\\033[0m  " "$$MAX_LEN" "$$l";			\\
-	done &															\\
-	make -j$(JOBS) $(NAME);											\\
-	STATUS=$$?;														\\
-	kill -9 `jobs -p`;												\\
-	rm -f $(PRINT_FILE);											\\
-	exit $$STATUS
+ifneq ($(COLUMN_OUTPUT),0)
+	-echo "0" > $(PRINT_FILE)
+endif
+	-make -j$(JOBS) _COLUMN_OUTPUT=$(COLUMN_OUTPUT) $(NAME)
+ifneq ($(COLUMN_OUTPUT),0)
+	-rm -f $(PRINT_FILE)
 endif
 
 # Include $(O_FILES) and dependencies
 include $(DEPEND)
+
+# Compute column width
+ifneq ($(_COLUMN_OUTPUT),0)
+	MAX_LEN		:= $(shell \\
+		MAX_LEN=0; for f in $(patsubst $(O_DIR)/%%,%%,$(O_FILES)); do		\\
+			if [ $${\\#f} -gt $$MAX_LEN ]; then MAX_LEN=$${\\#f}; fi;		\\
+		done; echo $$(($$MAX_LEN + 2))									\\
+	)
+	PER_LINE	:= $(shell echo $$((`tput cols` / $(MAX_LEN))))
+endif
 
 init: $(LIBS_RULES) $(OBJ_DIR_TREE) $(PUBLIC_LINKS)
 
