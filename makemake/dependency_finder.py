@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 17:07:20 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/26 00:30:15 by juloo            ###   ########.fr        #
+#    Updated: 2016/01/12 22:15:08 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,7 +38,7 @@ def track_file(module, file_name, included_dirs, include_stack):
 				dependencies |= track_file(m, abs_header, included_dirs, include_stack)
 				break
 		if not ok:
-			raise config.BaseError("Cannot found '%s' included from '%s'" % (inc, os.path.relpath(file_name)))
+			utils.warn("Cannot found '%s' included from '%s'" % (inc, os.path.relpath(file_name)))
 	del include_stack[file_name]
 	return dependencies
 
