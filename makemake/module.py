@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2015/11/26 00:30:05 by juloo            ###   ########.fr        #
+#    Updated: 2016/02/17 13:26:07 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -158,9 +158,10 @@ class Module():
 	def put(self, var, words):
 		if not var in self.to_put:
 			self.to_put[var] = []
-		for w in words:
-			if not w in self.to_put[var]:
-				self.to_put[var].append(w)
+		self.to_put[var] += words
+		# for w in words:
+			# if not w in self.to_put[var]:
+				# self.to_put[var].append(w)
 
 	def local(self, code):
 		self.locals.append(code)
@@ -198,9 +199,10 @@ def get_puts(module_list):
 		for var in m.to_put:
 			if not var in put:
 				put[var] = []
-			for word in m.to_put[var]:
-				if not word in put[var]:
-					put[var].append(word)
+			put[var] += m.to_put[var]
+			# for word in m.to_put[var]:
+			# 	if not word in put[var]:
+			# 		put[var].append(word)
 	return put
 
 #
