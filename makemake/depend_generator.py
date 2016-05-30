@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2015/11/28 21:30:55 by juloo            ###   ########.fr        #
+#    Updated: 2016/05/30 23:38:29 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,8 +28,9 @@ def gen(file_name, modules, source_map):
 
 def out(out, modules, source_map):
 	modules = sorted(modules, key=lambda m: m.name)
-	obj_files, links, extra_vars = get_vars(modules, source_map)
+	obj_files, links, mains, extra_vars = get_vars(modules, source_map)
 	out_puts(out, modules, extra_vars)
+	out_mains(out, mains)
 	for m in modules:
 		out_module(out, m, source_map[m], obj_files[m])
 	out_link_rules(out, links)
@@ -61,16 +62,34 @@ def get_vars(modules, source_map):
 		while len(tmp) >= len(config.OBJ_DIR):
 			obj_dirs.add(tmp)
 			tmp = os.path.dirname(tmp)
+	# Main modules
+	mains = [m for m in modules if m.is_main]
 	# Puts
 	puts = {
 		config.INCLUDE_FLAGS_VAR: ["-I%s" % base_link_dir],
 		config.PUBLIC_LINKS_VAR: [l for l, _ in links],
 		config.OBJ_FILES_VAR: obj_file_list,
 		config.OBJ_DIR_TREE_VAR: ["%s/" % d for d in sorted(obj_dirs, reverse=True)],
+		config.MAINS_VAR: [m.name for m in mains],
 	}
 	# -
-	links = sorted(links)
-	return (obj_files, links, puts)
+	return (obj_files, sorted(links), mains, puts)
+
+#
+
+def out_mains(out, mains):
+	def track_sources(m, sources):
+		for f in m.source_files():
+			sources[f[0]] = f
+		for m in m.required_modules():
+			track_sources(m, sources)
+	for t in mains:
+		srcs = {}
+		track_sources(t, srcs)
+		prefix = "%s:" % t.name
+		out.write(prefix)
+		print_file_list(out, map(os.path.relpath, get_obj_files(srcs).keys()), len(prefix))
+		out.write("\n\n")
 
 #
 

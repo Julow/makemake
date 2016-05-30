@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/21 19:55:10 by juloo            ###   ########.fr        #
+#    Updated: 2016/05/30 23:35:38 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -50,16 +50,16 @@ def list_command(args): # TODO: list indent by groupx
 	else:
 		unused_count = len(modules) - len(used_modules)
 		extra = "" if unused_count == 0 else "\033[90m(+%d unused)\033[0m " % unused_count
-		print "%d %smodule%s:" % (len(modules), extra, "s" if len(modules) > 1 else "")
+		print "%d %smodule%s:" % (len(used_modules), extra, "s" if len(modules) > 1 else "")
 		max_len = 0
 		for m in modules:
 			if len(m.name) > max_len:
 				max_len = len(m.name)
-		for m in sorted(modules, key=lambda m: (m.name in used_map, m.name)):
-			f = "%-*s (%s)"
-			print ("\t%s" if m.name in used_map else "\t\033[90m%s\033[0m") % f % (
-				max_len, m.name, os.path.relpath(m.base_dir)
-			)
+		for m in sorted(modules, key=lambda m: (m.name in used_map, not m.is_main, m.name)):
+			prefix, suffix = ("\033[90m", "\033[0m") if not m.name in used_map else ("\033[32m", "\033[0m") if m.is_main else ("", "")
+			print ("\t%s%-*s (%s)%s" % (
+				prefix, max_len, m.name, os.path.relpath(m.base_dir), suffix
+			))
 
 # check command
 

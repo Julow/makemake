@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/21 18:09:28 by juloo            ###   ########.fr        #
+#    Updated: 2016/05/30 23:12:24 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -68,7 +68,7 @@ def _check_module(module, checked_modules):
 def check(modules):
 	checked = []
 	module_names = {}
-	main_module = None
+	main_module = 0
 	for module in modules:
 		try:
 			if module.name in module_names:
@@ -79,11 +79,8 @@ def check(modules):
 		except config.BaseError as e:
 			raise CheckError("Module %s: %s" % (module.name, str(e)))
 		if module.is_main:
-			if main_module == None:
-				main_module = module
-			else:
-				raise CheckError("Too many main modules (%s)" % ", ".join([m.name for m in modules if m.is_main]))
-	if main_module == None:
+			main_module += 1
+	if main_module == 0:
 		utils.warn("Main module missing")
 	for module in modules:
 		def check_dep(lst):

@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 21:26:47 by juloo             #+#    #+#              #
-#    Updated: 2016/02/09 13:48:52 by jaguillo         ###   ########.fr        #
+#    Updated: 2016/05/30 23:38:56 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,9 +16,6 @@ import re
 
 MAKEFILE = """
 #
-
-# Executable name
-NAME			:= %(name)s
 
 # Git submodule to init
 SUBMODULES		:= %(submodules)s
@@ -64,20 +61,20 @@ PRINT_LINK		= printf '\\033[32m$@\\033[0m\\n'
 
 # Default rule (need to be before any include)
 all: init
-	make -j$(JOBS) $(NAME)
+	make -j$(JOBS) $(MAINS)
 
 # Include $(O_FILES) and dependencies
 include $(DEPEND)
 
 # make -n
 n: init
-	make -n $(NAME)
+	make -n $(MAINS)
 
-init: $(SUBMODULE_RULES) $(LIBS_RULES) $(OBJ_DIR_TREE) $(PUBLIC_LINKS)
+init: | $(SUBMODULE_RULES) $(LIBS_RULES) $(OBJ_DIR_TREE) $(PUBLIC_LINKS)
 
 # Linking
-$(NAME): $(OBJ_DIR_TREE) $(PUBLIC_LINKS) $(LINK_DEPENDS) $(O_FILES)
-	$(LINKER) -o $@ $(O_FILES) $(LINK_FLAGS) && $(PRINT_LINK)
+$(MAINS): | init
+	$(LINKER) -o $@ $^ $(LINK_FLAGS) && $(PRINT_LINK)
 
 # Compiling
 $(O_DIR)/%%.o: %%.c
@@ -111,7 +108,7 @@ clean:
 
 # Clean everything
 fclean: clean
-	rm -f $(NAME)
+	rm -f $(MAINS)
 
 # Clean and make
 re: fclean all
