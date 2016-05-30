@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/11/01 10:10:17 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/02 23:12:17 by juloo            ###   ########.fr        #
+#    Updated: 2016/05/30 23:42:11 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,6 +29,9 @@ setup(
 	url='https://github.com/Julow/makemake',
 	author=makemake.__author__,
 	packages=['makemake'],
-	entry_points={'console_scripts': ['makemake2 = makemake.__main__:main']},
+	entry_points={'console_scripts': [
+		'makemake2 = makemake.__main__:main',
+		'mm = makemake.__main__:main'
+	]},
 	keywords=['makemake', 'makemake2'],
 )
