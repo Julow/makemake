@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2016/05/30 23:38:29 by juloo            ###   ########.fr        #
+#    Updated: 2016/06/29 22:56:12 by juloo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -67,7 +67,7 @@ def get_vars(modules, source_map):
 	# Puts
 	puts = {
 		config.INCLUDE_FLAGS_VAR: ["-I%s" % base_link_dir],
-		config.PUBLIC_LINKS_VAR: [l for l, _ in links],
+		config.PUBLIC_LINKS_VAR: sorted([l for l, _ in links]),
 		config.OBJ_FILES_VAR: obj_file_list,
 		config.OBJ_DIR_TREE_VAR: ["%s/" % d for d in sorted(obj_dirs, reverse=True)],
 		config.MAINS_VAR: [m.name for m in mains],
@@ -78,6 +78,9 @@ def get_vars(modules, source_map):
 #
 
 def out_mains(out, mains):
+	if len(mains) == 1:
+		out.write("%s: $(%s)\n\n" % (mains[0].name, config.OBJ_FILES_VAR))
+		return
 	def track_sources(m, sources):
 		for f in m.source_files():
 			sources[f[0]] = f
