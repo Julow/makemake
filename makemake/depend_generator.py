@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2016/06/29 22:56:12 by juloo            ###   ########.fr        #
+#    Updated: 2016/10/14 12:49:50 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,6 +14,7 @@ import os
 import module
 import config
 import utils
+import subprocess
 
 #
 # Overwrite file_name
@@ -30,9 +31,9 @@ def out(out, modules, source_map):
 	modules = sorted(modules, key=lambda m: m.name)
 	obj_files, links, mains, extra_vars = get_vars(modules, source_map)
 	out_puts(out, modules, extra_vars)
-	out_mains(out, mains)
 	for m in modules:
 		out_module(out, m, source_map[m], obj_files[m])
+	out_mains(out, mains)
 	out_link_rules(out, links)
 
 #
@@ -133,6 +134,14 @@ def out_module(out, mod, src_files, obj_files):
 			out.write(sep)
 			print_file_list(out, l.split(), offset)
 			out.write("\n")
+	# on_gen scripts
+	for script in mod.on_gen_scripts:
+		p = subprocess.Popen(script, stdout=subprocess.PIPE, shell=True,
+				env=dict(os.environ, MODULE_DIR=mod.base_dir))
+		out.write("\n")
+		for line in p.stdout:
+			out.write(line)
+		p.wait()
 	out.write("\n")
 
 #

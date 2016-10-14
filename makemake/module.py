@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/14 22:44:53 by juloo             #+#    #+#              #
-#    Updated: 2016/02/17 13:26:07 by jaguillo         ###   ########.fr        #
+#    Updated: 2016/10/14 11:26:10 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,6 +31,7 @@ class Module():
 		self.locals = []
 		self.auto_enabled = True
 		self.mk_imports = []
+		self.on_gen_scripts = []
 
 		self.is_main = False
 
@@ -174,6 +175,9 @@ class Module():
 
 	def mk_import(self, file_name, copy):
 		self.mk_imports.append((os.path.join(self.base_dir, file_name), copy))
+
+	def on_gen(self, script):
+		self.on_gen_scripts.append(script)
 
 #
 # Check if 'file_name' exists in a dir of 'dir_list'

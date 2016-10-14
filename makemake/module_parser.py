@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:32 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/21 13:26:34 by juloo            ###   ########.fr        #
+#    Updated: 2016/10/14 11:42:57 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,7 +31,8 @@ MODULE_INSTRUCTIONS = {
 	"local":	(1, -1,	lambda m, w, v: m.local(" ".join(w))),
 	"source":	(1, -1,	lambda m, w, v: m.source(w)),
 	"disable":	(1, 1,	lambda m, w, v: m.disable(w[0])),
-	"makefile":	(2, 2,	_instruction_makefile)
+	"makefile":	(2, 2,	_instruction_makefile),
+	"on_gen":	(1, -1,	lambda m, w, v: m.on_gen(" ".join(w)))
 }
 
 class ParserError(config.BaseError):
