@@ -6,7 +6,7 @@
 #    By: juloo <juloo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/31 16:18:31 by juloo             #+#    #+#              #
-#    Updated: 2016/10/14 12:49:50 by jaguillo         ###   ########.fr        #
+#    Updated: 2017/02/27 17:39:22 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,17 +19,17 @@ import subprocess
 #
 # Overwrite file_name
 #
-def gen(file_name, modules, source_map):
+def gen(file_name, modules, source_map, mains):
 	with open(file_name, "w") as f:
-		out(f, modules, source_map)
+		out(f, modules, source_map, mains)
 
 #
 # Output a depend file to 'out'
 #
 
-def out(out, modules, source_map):
+def out(out, modules, source_map, mains):
 	modules = sorted(modules, key=lambda m: m.name)
-	obj_files, links, mains, extra_vars = get_vars(modules, source_map)
+	obj_files, links, extra_vars = get_vars(modules, source_map, mains)
 	out_puts(out, modules, extra_vars)
 	for m in modules:
 		out_module(out, m, source_map[m], obj_files[m])
@@ -38,7 +38,7 @@ def out(out, modules, source_map):
 
 #
 
-def get_vars(modules, source_map):
+def get_vars(modules, source_map, mains):
 	# Links
 	base_link_dir = os.path.join(config.OBJ_DIR, config.PUBLIC_LINK_DIR)
 	link_dirs = []
@@ -63,8 +63,6 @@ def get_vars(modules, source_map):
 		while len(tmp) >= len(config.OBJ_DIR):
 			obj_dirs.add(tmp)
 			tmp = os.path.dirname(tmp)
-	# Main modules
-	mains = [m for m in modules if m.is_main]
 	# Puts
 	puts = {
 		config.INCLUDE_FLAGS_VAR: ["-I%s" % base_link_dir],
@@ -74,7 +72,7 @@ def get_vars(modules, source_map):
 		config.MAINS_VAR: [m.name for m in mains],
 	}
 	# -
-	return (obj_files, sorted(links), mains, puts)
+	return (obj_files, sorted(links), puts)
 
 #
 

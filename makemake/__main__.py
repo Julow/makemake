@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 09:22:52 by jaguillo          #+#    #+#              #
-#    Updated: 2016/05/30 23:35:38 by juloo            ###   ########.fr        #
+#    Updated: 2017/02/27 18:40:59 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,10 +39,10 @@ import os
 
 # list command
 
-def list_command(args): # TODO: list indent by groupx
+def list_command(args):
 	modules = module_searcher.parse_all()
+	used_modules, _ = module_searcher.filter_mains(modules, args)
 	used_map = {}
-	used_modules = module_searcher.filter_unused(modules)
 	for m in used_modules:
 		used_map[m.name] = True
 	if len(modules) == 0:
@@ -75,7 +75,9 @@ def check_command(args):
 # info command
 
 def _info_modules(args):
-	modules = module_searcher.load()
+	modules = module_searcher.parse_all()
+	modules = module_searcher.filter_mains(modules, [])
+	module_checker.check(modules)
 	if len(args) == 0:
 		return modules
 	arg_modules = []
@@ -159,9 +161,12 @@ def info_command(args):
 # gen command
 
 def gen_command(args):
-	modules = module_searcher.load()
+	modules = module_searcher.parse_all()
+	modules, mains = module_searcher.filter_mains(modules, args)
+	print("Main modules: %s" % ", ".join([m.name for m in mains]))
+	module_checker.check(modules)
 	source_map = dependency_finder.track(modules)
-	depend_generator.gen(config.DEPEND_FILE_NAME, modules, source_map)
+	depend_generator.gen(config.DEPEND_FILE_NAME, modules, source_map, mains)
 
 # makefile command
 
@@ -173,7 +178,7 @@ def makefile_command(args):
 
 # print command
 
-def print_command(args):
+def print_command(args): # TODO: use args
 	modules = module_searcher.parse_all()
 	used_modules = module_searcher.filter_unused(modules)
 	if len(args) == 0 or args[0] != '--all':

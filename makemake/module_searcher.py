@@ -6,14 +6,14 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 08:53:46 by jaguillo          #+#    #+#              #
-#    Updated: 2015/11/18 23:58:39 by juloo            ###   ########.fr        #
+#    Updated: 2017/02/27 18:41:35 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import os
 import module_parser
-import module_checker
 import config
+import utils
 
 #
 # Walk current directory
@@ -67,7 +67,7 @@ def parse_all():
 # Return a copy of the list 'modules' without unused modules
 #
 
-def filter_unused(modules):
+def filter_unused(modules, mains):
 	used_map = {}
 	def check_used(m):
 		if not m.name in used_map:
@@ -77,20 +77,32 @@ def filter_unused(modules):
 			for dep in m.private_required:
 				check_used(dep)
 	ok = False
-	for m in modules:
-		if m.is_main:
-			ok = True
-			check_used(m)
+	for m in mains:
+		ok = True
+		check_used(m)
 	if not ok:
 		return modules
 	return used_map.values()
 
 #
-# parse_all + filter_unused + module_checker.check
+# 'main_names' is the list of the main modules to use
+# If 'main_names' is empty, use all the main modules
+# Return (the list of modules, main modules)
 #
 
-def load():
-	modules = parse_all()
-	modules = filter_unused(modules)
-	module_checker.check(modules)
-	return modules
+def filter_mains(modules, main_names):
+	main_map = {m.name: m for m in modules if m.is_main}
+	def main_by_names():
+		mains = []
+		for name in main_names:
+			if name not in main_map:
+				utils.warn("Unknown main module '%s'" % name)
+				continue
+			if main_map[name] == None:
+				utils.warn("Main module '%s' specified twice" % name)
+				continue
+			mains.append(main_map[name])
+			main_map[name] = None
+		return mains
+	mains = main_by_names() if len(main_names) > 0 else main_map.values()
+	return (filter_unused(modules, mains), mains)

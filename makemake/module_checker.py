@@ -6,7 +6,7 @@
 #    By: jaguillo <jaguillo@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/10/15 10:04:05 by jaguillo          #+#    #+#              #
-#    Updated: 2016/05/30 23:12:24 by juloo            ###   ########.fr        #
+#    Updated: 2017/02/27 17:36:11 by jaguillo         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -86,7 +86,7 @@ def check(modules):
 		def check_dep(lst):
 			for r in lst:
 				if r.is_main:
-					utils.warn("Main module %s: Should be the root module (required by %s) (it'll cause an include loop)" % (r.name, module.name))
+					utils.warn("Main module %s: Should be the root module (required by %s)" % (r.name, module.name))
 		check_dep(module.public_required)
 		check_dep(module.private_required)
 	for module in modules:
